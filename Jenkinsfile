@@ -17,7 +17,8 @@ pipeline {
 				}
 			}
 			steps {
-				sh 'docker run -e GITHUB_API_TOKEN=$GITHUB_API_TOKEN permissions-report'
+				sh 'docker run -e GITHUB_API_TOKEN=$GITHUB_API_TOKEN permissions-report > permissions-report.json'
+				archiveArtifacts '*.json'
 			}
 		}
 	}
