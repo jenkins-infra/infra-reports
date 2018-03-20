@@ -19,7 +19,7 @@ pipeline {
 			steps {
 				sh 'docker run -e GITHUB_API_TOKEN=$GITHUB_API_TOKEN permissions-report > github-jenkinsci-permissions-report.json'
 				archiveArtifacts '*.json'
-				publishReports [ 'github-jenkinsci-permissions-report.json' ]
+				publishReports ([ 'github-jenkinsci-permissions-report.json' ])
 			}
 		}
 	}
