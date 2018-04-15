@@ -23,5 +23,5 @@ Format example:
 
 ### Usage
 
-	docker build permission-reports -t permissions-report
+	docker build permissions-report -t permissions-report
 	docker run -e GITHUB_API_TOKEN=1234567890abcdef1234567890abcdef permissions-report
