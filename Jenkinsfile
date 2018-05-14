@@ -2,6 +2,10 @@
 
 pipeline {
 
+	triggers {
+		cron('H * * * *')
+	}
+
 	agent { label 'docker' }
 
 	stages {
