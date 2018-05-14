@@ -2,6 +2,10 @@
 
 pipeline {
 
+	triggers {
+		cron('H * * * *')
+	}
+
 	agent { label 'docker' }
 
 	stages {
@@ -19,7 +23,7 @@ pipeline {
 			}
 			steps {
 				withCredentials([usernameColonPassword(credentialsId: 'artifactoryAdmin', variable: 'ARTIFACTORY_AUTH')]) {
-					sh 'docker run -e ARTIFACTORY_AUTH=$ARTIFACTORY_AUTH permissions-report > artifactory-ldap-users-report.json'
+					sh 'docker run -e ARTIFACTORY_AUTH=$ARTIFACTORY_AUTH artifactory-users-report > artifactory-ldap-users-report.json'
 				}
 				// TODO: sh 'docker run -e GITHUB_API_TOKEN=$GITHUB_API_TOKEN permissions-report > github-jenkinsci-permissions-report.json'
 				archiveArtifacts '*.json'
