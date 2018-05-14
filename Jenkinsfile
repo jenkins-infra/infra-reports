@@ -8,6 +8,7 @@ pipeline {
 		stage ('Build') {
 			steps {
 				sh 'docker build permissions-report -t permissions-report'
+				sh 'docker build artifactory-users-report -t artifactory-users-report'
 			}
 		}
 		stage ('Run') {
@@ -17,9 +18,12 @@ pipeline {
 				}
 			}
 			steps {
-				sh 'docker run -e GITHUB_API_TOKEN=$GITHUB_API_TOKEN permissions-report > github-jenkinsci-permissions-report.json'
+				withCredentials([usernameColonPassword(credentialsId: 'artifactoryAdmin', variable: 'ARTIFACTORY_AUTH')]) {
+					sh 'docker run -e ARTIFACTORY_AUTH=$ARTIFACTORY_AUTH permissions-report > artifactory-ldap-users-report.json'
+				}
+				// TODO: sh 'docker run -e GITHUB_API_TOKEN=$GITHUB_API_TOKEN permissions-report > github-jenkinsci-permissions-report.json'
 				archiveArtifacts '*.json'
-				publishReports ([ 'github-jenkinsci-permissions-report.json' ])
+				publishReports ([ /*'github-jenkinsci-permissions-report.json',*/ 'artifactory-ldap-users-report.json' ])
 			}
 		}
 	}
