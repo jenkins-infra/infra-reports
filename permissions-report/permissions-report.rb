@@ -76,33 +76,48 @@ end
 
 repository_cursor = nil
 collaborator_cursor = nil
+error_count = 0
 
 loop do
   result = GitHubGraphQL::Client.query(CollaboratorsQuery, variables: {repository_cursor: repository_cursor, collaborator_cursor: collaborator_cursor})
-  collaborator_paging = nil
-  result.data.organization.repositories.edges.each { |repo|
-    repo_name = repo.node.name
-    STDERR.puts "Processing #{repo_name}"
-    collaborator_paging = repo.node.collaborators.page_info
-    repo.node.collaborators.edges.each { |collaborator|
-      record_collaborator(repo_name, collaborator.node.login, collaborator.permission)
-    }
-  }
 
-  ratelimit_info(result.data.rate_limit)
-
-  if collaborator_paging.has_next_page then
-    STDERR.puts "Next page of collaborators..."
-    collaborator_cursor = collaborator_paging.end_cursor
+  if result.errors[:data] then
+    STDERR.puts result.errors[:data]
+    if error_count > 5 then
+      # fatal
+      STDERR.puts "Consecutive error count limit reached, aborting"
+      abort("Too many errors")
+    else
+      error_count += 1
+    end
   else
-    break
-    repository_paging = result.data.organization.repositories.page_info
-    if repository_paging.has_next_page
-      STDERR.puts "Next page of repositories..."
-      collaborator_cursor = nil
-      repository_cursor = repository_paging.end_cursor
+    error_count = 0
+
+    collaborator_paging = nil
+    result.data.organization.repositories.edges.each { |repo|
+      repo_name = repo.node.name
+      STDERR.puts "Processing #{repo_name}"
+      collaborator_paging = repo.node.collaborators.page_info
+      repo.node.collaborators.edges.each { |collaborator|
+        record_collaborator(repo_name, collaborator.node.login, collaborator.permission)
+      }
+    }
+
+    ratelimit_info(result.data.rate_limit)
+
+    if collaborator_paging.has_next_page then
+      STDERR.puts "Next page of collaborators..."
+      collaborator_cursor = collaborator_paging.end_cursor
     else
       break
+      repository_paging = result.data.organization.repositories.page_info
+      if repository_paging.has_next_page
+        STDERR.puts "Next page of repositories..."
+        collaborator_cursor = nil
+        repository_cursor = repository_paging.end_cursor
+      else
+        break
+      end
     end
   end
 end
