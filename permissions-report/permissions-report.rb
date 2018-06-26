@@ -1,88 +1,110 @@
-# GitHub permissions report
-#
-# * List repositories in jenkinsci organization
-#   https://developer.github.com/v3/repos/#list-organization-repositories
-# * List org owners
-#   https://developer.github.com/v3/orgs/members/#members-list
-# * For each repository in organization
-#   - List collaborators and access level, ignoring org owners
-#     https://developer.github.com/v3/repos/collaborators/#list-collaborators
+# Usage: GITHUB_API_TOKEN=abcdefabcdef ruby permission-report.rb > report.json
 
-# Personal access token with `read:org`
-# Created via https://github.com/settings/tokens/new
-access_token = ENV['GITHUB_API_TOKEN']
-
-org_name = "jenkinsci"
-
-#############
-# OPTIONS END
-#############
-
-require 'octokit'
-require 'faraday-http-cache'
+require "graphql/client"
+require "graphql/client/http"
+require 'pp'
 require 'json'
 
-Octokit.per_page = 100
-Octokit.auto_paginate = true
+$token = ENV['GITHUB_API_TOKEN']
 
-$client = Octokit::Client.new :access_token => access_token
-
-stack = Faraday::RackBuilder.new do |builder|
-  builder.use Faraday::HttpCache, serializer: Marshal, shared_cache: false
-  builder.response :logger
-  builder.use Octokit::Response::RaiseError
-  builder.adapter Faraday.default_adapter
-end
-Octokit.middleware = stack
-
-ratelimit = $client.ratelimit
-STDERR.puts "Rate limit remaining: #{ratelimit.remaining}"
-
-# local development/test: if there are args, they're assumed to be repo names
-if ARGV.length > 0 then
-  repositories = ARGV
-else
-  repositories = []
-  $client.org_repos(org_name).each do |repo|
-    repositories << repo[:name]
-  end
-end
-
-STDERR.puts "Will scan #{repositories.length} repositories"
-
-# determine org owners to filter them out
-org_owners = $client.org_members(org_name, :role => "admin").map { |u| u.login }
-
-ratelimit = $client.ratelimit
-STDERR.puts "Rate limit remaining: #{ratelimit.remaining}"
-
-table_data = []
-i = 0
-
-repositories.each do |repo|
-  repo_name = org_name + "/" + repo
-  i += 1
-
-  STDERR.puts "#{i}: #{repo_name}"
-
-  collaborators = $client.collaborators(repo_name, :affiliation => 'all')
-  collaborators.each do |c|
-    if org_owners.include? c[:login] then
-      next
+module GitHubGraphQL
+  HTTP = GraphQL::Client::HTTP.new("https://api.github.com/graphql") do
+    def headers(context)
+      {
+        "Authorization" => "bearer #{$token}"
+      }
     end
-    permission = c.permissions.admin ? 'admin' : (c.permissions.push ? 'push' : 'pull' )
-    if permission != 'pull' then
-      table_data << [ repo, c[:login], permission ]
-    end
-  end
+  end  
+  Schema = GraphQL::Client.load_schema(HTTP)
+  Client = GraphQL::Client.new(schema: Schema, execute: HTTP)
+end
 
-  ratelimit = $client.ratelimit
-  if ratelimit.remaining < 50 then
-    STDERR.puts "Rate limit remaining: #{ratelimit.remaining} is below limit of 50, waiting #{ratelimit.resets_in} seconds until reset"
-    sleep(ratelimit.resets_in + 5)
-    ratelimit = $client.ratelimit
-    STDERR.puts "Resuming with #{ratelimit.remaining} until #{ratelimit.resets_at}"
+
+CollaboratorsQuery = GitHubGraphQL::Client.parse <<-'GRAPHQL'
+
+query($repository_cursor: String, $collaborator_cursor: String) {
+  organization(login: "jenkinsci") {
+    repositories(first: 20, after: $repository_cursor) {
+      pageInfo {
+        startCursor
+        hasNextPage
+        endCursor
+      }
+      edges {
+        node {
+          name
+          collaborators(first: 100, after: $collaborator_cursor) {
+            totalCount
+            pageInfo {
+              startCursor
+              hasNextPage
+              endCursor
+            }
+            edges {
+              permission
+              node {
+                login
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+  rateLimit {
+    limit
+    cost
+    remaining
+    resetAt
+  }
+}
+GRAPHQL
+
+
+$table_data = []
+
+def record_collaborator(repo_name, collaborator, permission)
+  # TODO: obtain list of org admins to filter from output
+  if permission != "READ" and collaborator != "rtyler" and collaborator != "kohsuke" and collaborator != "daniel-beck" and collaborator != "oleg-nenashev" then
+    $table_data << [ repo_name, collaborator, permission ]
   end
 end
 
-puts JSON.generate(table_data)
+def ratelimit_info(rate_limit)
+  STDERR.puts "Rate limit: Cost: #{rate_limit.cost}, limit #{rate_limit.limit}, remaining: #{rate_limit.remaining}, reset at: #{rate_limit.reset_at}"
+end
+
+repository_cursor = nil
+collaborator_cursor = nil
+
+loop do
+  result = GitHubGraphQL::Client.query(CollaboratorsQuery, variables: {repository_cursor: repository_cursor, collaborator_cursor: collaborator_cursor})
+  collaborator_paging = nil
+  result.data.organization.repositories.edges.each { |repo|
+    repo_name = repo.node.name
+    STDERR.puts "Processing #{repo_name}"
+    collaborator_paging = repo.node.collaborators.page_info
+    repo.node.collaborators.edges.each { |collaborator|
+      record_collaborator(repo_name, collaborator.node.login, collaborator.permission)
+    }
+  }
+
+  ratelimit_info(result.data.rate_limit)
+
+  if collaborator_paging.has_next_page then
+    STDERR.puts "Next page of collaborators..."
+    collaborator_cursor = collaborator_paging.end_cursor
+  else
+    break
+    repository_paging = result.data.organization.repositories.page_info
+    if repository_paging.has_next_page
+      STDERR.puts "Next page of repositories..."
+      collaborator_cursor = nil
+      repository_cursor = repository_paging.end_cursor
+    else
+      break
+    end
+  end
+end
+
+puts JSON.generate($table_data)
