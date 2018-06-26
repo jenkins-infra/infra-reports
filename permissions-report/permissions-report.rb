@@ -109,7 +109,6 @@ loop do
       STDERR.puts "Next page of collaborators..."
       collaborator_cursor = collaborator_paging.end_cursor
     else
-      break
       repository_paging = result.data.organization.repositories.page_info
       if repository_paging.has_next_page
         STDERR.puts "Next page of repositories..."
