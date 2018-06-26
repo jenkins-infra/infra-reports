@@ -63,7 +63,7 @@ repositories.each do |repo|
   repo_name = org_name + "/" + repo
   i += 1
 
-  puts "#{i}: #{repo_name}"
+  STDERR.puts "#{i}: #{repo_name}"
 
   collaborators = $client.collaborators(repo_name, :affiliation => 'all')
   collaborators.each do |c|
