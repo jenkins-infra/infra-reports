@@ -79,6 +79,7 @@ collaborator_cursor = nil
 error_count = 0
 
 loop do
+  STDERR.puts "Calling with cursors: repository #{repository_cursor}, collaborator #{collaborator_cursor}"
   result = GitHubGraphQL::Client.query(CollaboratorsQuery, variables: {repository_cursor: repository_cursor, collaborator_cursor: collaborator_cursor})
 
   if !result.errors[:data].empty? then
@@ -106,14 +107,14 @@ loop do
     ratelimit_info(result.data.rate_limit)
 
     if collaborator_paging.has_next_page then
-      STDERR.puts "Next page of collaborators..."
       collaborator_cursor = collaborator_paging.end_cursor
+      STDERR.puts "Next page of collaborators, from #{collaborator_cursor}"
     else
       repository_paging = result.data.organization.repositories.page_info
       if repository_paging.has_next_page
-        STDERR.puts "Next page of repositories..."
         collaborator_cursor = nil
         repository_cursor = repository_paging.end_cursor
+        STDERR.puts "Next page of repositories, from #{repository_cursor}"
       else
         break
       end
