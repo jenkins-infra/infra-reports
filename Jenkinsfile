@@ -3,7 +3,7 @@
 pipeline {
 
 	triggers {
-		cron('H * * * *')
+		cron('H/4 * * * *')
 	}
 
 	agent { label 'docker' }
@@ -25,9 +25,10 @@ pipeline {
 				withCredentials([usernameColonPassword(credentialsId: 'artifactoryAdmin', variable: 'ARTIFACTORY_AUTH')]) {
 					sh 'docker run -e ARTIFACTORY_AUTH=$ARTIFACTORY_AUTH artifactory-users-report > artifactory-ldap-users-report.json'
 				}
-				withCredentials([usernamePassword(credentialsId: 'github-token', passwordVariable: 'GITHUB_API_TOKEN', usernameVariable: '_')]) {
-					sh 'docker run -e GITHUB_API_TOKEN=$GITHUB_API_TOKEN permissions-report > github-jenkinsci-permissions-report.json'
-				}
+// GitHub API rate limit hits this so hard, due to defaulting to read access for org members, we need ~15 requests per each of 2000 repos:
+//				withCredentials([usernamePassword(credentialsId: 'github-token', passwordVariable: 'GITHUB_API_TOKEN', usernameVariable: '_')]) {
+//					sh 'docker run -e GITHUB_API_TOKEN=$GITHUB_API_TOKEN permissions-report > github-jenkinsci-permissions-report.json'
+//				}
 				archiveArtifacts '*.json'
 				publishReports ([ /*'github-jenkinsci-permissions-report.json',*/ 'artifactory-ldap-users-report.json' ])
 			}
