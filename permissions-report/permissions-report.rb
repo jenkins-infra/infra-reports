@@ -81,7 +81,7 @@ error_count = 0
 loop do
   result = GitHubGraphQL::Client.query(CollaboratorsQuery, variables: {repository_cursor: repository_cursor, collaborator_cursor: collaborator_cursor})
 
-  if result.errors[:data] then
+  if !result.errors[:data].empty? then
     STDERR.puts result.errors[:data]
     if error_count > 5 then
       # fatal
