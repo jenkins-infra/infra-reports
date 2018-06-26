@@ -57,17 +57,23 @@ ratelimit = $client.ratelimit
 STDERR.puts "Rate limit remaining: #{ratelimit.remaining}"
 
 table_data = []
+i = 0
 
 repositories.each do |repo|
   repo_name = org_name + "/" + repo
+  i += 1
+
+  puts "#{i}: #{repo_name}"
 
   collaborators = $client.collaborators(repo_name, :affiliation => 'all')
   collaborators.each do |c|
     if org_owners.include? c[:login] then
       next
     end
-    permission = c.permissions.admin ? 'admin' : (c.permissions.push ? 'push' : 'pull')
-    table_data << [ repo, c[:login], permission ]
+    permission = c.permissions.admin ? 'admin' : (c.permissions.push ? 'push' : 'pull' )
+    if permission != 'pull' then
+      table_data << [ repo, c[:login], permission ]
+    end
   end
 
   ratelimit = $client.ratelimit
