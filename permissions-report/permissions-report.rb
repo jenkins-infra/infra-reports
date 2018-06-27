@@ -99,10 +99,14 @@ loop do
     result.data.organization.repositories.edges.each { |repo|
       repo_name = repo.node.name
       STDERR.puts "Processing #{repo_name}"
-      collaborator_paging = repo.node.collaborators.page_info
-      repo.node.collaborators.edges.each { |collaborator|
-        record_collaborator(repo_name, collaborator.node.login, collaborator.permission)
-      }
+      if repo.node.collaborators then
+        collaborator_paging = repo.node.collaborators.page_info
+        repo.node.collaborators.edges.each { |collaborator|
+          record_collaborator(repo_name, collaborator.node.login, collaborator.permission)
+        }
+      else
+        STDERR.puts "Nil collaborators, archived repo #{repo_name}?"
+      end
     }
 
     ratelimit_info(result.data.rate_limit)
