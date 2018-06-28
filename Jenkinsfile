@@ -3,7 +3,7 @@
 pipeline {
 
 	triggers {
-		cron('H H/2 * * *')
+		cron('H/15 * * * *')
 	}
 
 
