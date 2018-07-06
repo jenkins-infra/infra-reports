@@ -6,13 +6,12 @@ pipeline {
 		cron('H/15 * * * *')
 	}
 
-
 	options {
 		// 6 hours timeout combined with lock and inverse precedence to will properly gate the GitHub permissions report
 		timeout(time: 6, unit: 'HOURS')
 	}
 
-	agent { label 'docker' }
+	agent none
 
 	stages {
 		stage ('Build') {
@@ -29,6 +28,7 @@ pipeline {
 			}
 			parallel {
 				stage('Artifactory Permissions') {
+					agent { label 'docker' }
 					steps {
 						withCredentials([usernameColonPassword(credentialsId: 'artifactoryAdmin', variable: 'ARTIFACTORY_AUTH')]) {
 							sh 'docker run -e ARTIFACTORY_AUTH=$ARTIFACTORY_AUTH artifactory-users-report > artifactory-ldap-users-report.json'
@@ -38,14 +38,16 @@ pipeline {
 					}
 				}
 				stage('GitHub Permissions') {
+					agent { label 'docker' }
+					options {
+						lock(resource: 'github-permissions', inversePrecedence: true)
+					}
 					steps {
-						lock(resource: 'github-permissions', inversePrecedence: true) {
-							withCredentials([usernamePassword(credentialsId: 'github-token', passwordVariable: 'GITHUB_API_TOKEN', usernameVariable: '_')]) {
-								sh 'docker run -e GITHUB_API_TOKEN=$GITHUB_API_TOKEN permissions-report > github-jenkinsci-permissions-report.json'
-							}
-							archiveArtifacts 'github-jenkinsci-permissions-report.json'
-							publishReports ([ 'github-jenkinsci-permissions-report.json' ])
+						withCredentials([usernamePassword(credentialsId: 'github-token', passwordVariable: 'GITHUB_API_TOKEN', usernameVariable: '_')]) {
+							sh 'docker run -e GITHUB_API_TOKEN=$GITHUB_API_TOKEN permissions-report > github-jenkinsci-permissions-report.json'
 						}
+						archiveArtifacts 'github-jenkinsci-permissions-report.json'
+						publishReports ([ 'github-jenkinsci-permissions-report.json' ])
 					}
 				}
 			}
