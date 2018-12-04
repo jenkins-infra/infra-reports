@@ -47,7 +47,7 @@ pipeline {
 						ARTIFACTORY_AUTH = credentials('artifactoryAdmin')
 					}
 					steps {
-						sh 'docker build permissions-report -t permissions-report'
+						sh 'docker build artifactory-users-report -t artifactory-users-report'
 						sh 'docker run -e ARTIFACTORY_AUTH=$ARTIFACTORY_AUTH artifactory-users-report > artifactory-ldap-users-report.json'
 						archiveArtifacts 'artifactory-ldap-users-report.json'
 						publishReports ([ 'artifactory-ldap-users-report.json' ])
@@ -64,7 +64,7 @@ pipeline {
 						lock(resource: 'github-permissions', inversePrecedence: true)
 					}
 					steps {
-						sh 'docker build artifactory-users-report -t artifactory-users-report'
+						sh 'docker build permissions-report -t permissions-report'
 						sh 'docker run -e GITHUB_API_TOKEN=$GITHUB_API_PSW permissions-report > github-jenkinsci-permissions-report.json'
 						archiveArtifacts 'github-jenkinsci-permissions-report.json'
 						publishReports ([ 'github-jenkinsci-permissions-report.json' ])
