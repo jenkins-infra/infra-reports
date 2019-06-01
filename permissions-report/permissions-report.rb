@@ -71,7 +71,8 @@ def record_collaborator(repo_name, collaborator, permission)
     "rtyler",
     "kohsuke",
     "daniel-beck",
-    "oleg-nenashev"
+    "oleg-nenashev",
+    "batmat"
   ]
   if permission != "READ" and ! admins.include? collaborator then
     $table_data << [ repo_name, collaborator, permission ]
