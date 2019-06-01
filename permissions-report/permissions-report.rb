@@ -2,11 +2,11 @@
 
 require "graphql/client"
 require "graphql/client/http"
-require 'httparty'
-require 'pp'
-require 'json'
+require "httparty"
+require "pp"
+require "json"
 
-$auth = "bearer #{ENV['GITHUB_API_TOKEN']}"
+$auth = "bearer #{ENV["GITHUB_API_TOKEN"]}"
 
 module GitHubGraphQL
   HTTP = GraphQL::Client::HTTP.new("https://api.github.com/graphql") do
@@ -64,12 +64,12 @@ GRAPHQL
 
 $table_data = []
 
-response = HTTParty.get('https://api.github.com/orgs/jenkinsci/members?role=admin', :headers => {
-  'Authorization' => $auth,
+response = HTTParty.get("https://api.github.com/orgs/jenkinsci/members?role=admin", :headers => {
+  "Authorization" => $auth,
   "User-Agent" => "JenkinsCI report"
 })
 
-$org_admins = response.parsed_response.map{|user| user['login']&.downcase}
+$org_admins = response.parsed_response.map{|user| user["login"]&.downcase}
 
 def record_collaborator(repo_name, collaborator, permission)
   unless permission == "READ" or $org_admins.include?(collaborator.downcase) then
