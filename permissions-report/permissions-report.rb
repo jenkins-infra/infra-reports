@@ -69,10 +69,10 @@ response = HTTParty.get("https://api.github.com/orgs/jenkinsci/members?role=admi
   "User-Agent" => "JenkinsCI report"
 })
 
-$org_admins = response.parsed_response.map{|user| user["login"]&.downcase}
+$org_admins = response.parsed_response.map{|user| user["login"]}
 
 def record_collaborator(repo_name, collaborator, permission)
-  unless permission == "READ" or $org_admins.include?(collaborator.downcase) then
+  unless permission == "READ" or $org_admins.include? collaborator then
     $table_data << [ repo_name, collaborator, permission ]
   end
 end
