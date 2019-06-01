@@ -63,9 +63,11 @@ GRAPHQL
 
 $table_data = []
 
+# TODO: obtain list of org admins to filter from output
+$org_admins = %w(olivergondza jenkinsadmin rtyler kohsuke daniel-beck oleg-nenashev batmat).map(&:downcase)
+
 def record_collaborator(repo_name, collaborator, permission)
-  # TODO: obtain list of org admins to filter from output
-  if permission != "READ" and collaborator != "olivergondza" and collaborator != "jenkinsadmin" and collaborator != "rtyler" and collaborator != "kohsuke" and collaborator != "daniel-beck" and collaborator != "oleg-nenashev" then
+  unless permission == "READ" or $org_admins.include?(collaborator.downcase) then
     $table_data << [ repo_name, collaborator, permission ]
   end
 end
