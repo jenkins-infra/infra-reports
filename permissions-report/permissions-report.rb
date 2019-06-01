@@ -2,19 +2,20 @@
 
 require "graphql/client"
 require "graphql/client/http"
+require 'httparty'
 require 'pp'
 require 'json'
 
-$token = ENV['GITHUB_API_TOKEN']
+$auth = "bearer #{ENV['GITHUB_API_TOKEN']}"
 
 module GitHubGraphQL
   HTTP = GraphQL::Client::HTTP.new("https://api.github.com/graphql") do
     def headers(context)
       {
-        "Authorization" => "bearer #{$token}"
+        "Authorization" => $auth
       }
     end
-  end  
+  end
   Schema = GraphQL::Client.load_schema(HTTP)
   Client = GraphQL::Client.new(schema: Schema, execute: HTTP)
 end
@@ -63,8 +64,12 @@ GRAPHQL
 
 $table_data = []
 
-# TODO: obtain list of org admins to filter from output
-$org_admins = %w(olivergondza jenkinsadmin rtyler kohsuke daniel-beck oleg-nenashev batmat).map(&:downcase)
+response = HTTParty.get('https://api.github.com/orgs/jenkinsci/members?role=admin', :headers => {
+  'Authorization' => $auth,
+  "User-Agent" => "JenkinsCI report"
+})
+
+$org_admins = response.parsed_response.map{|user| user['login']&.downcase}
 
 def record_collaborator(repo_name, collaborator, permission)
   unless permission == "READ" or $org_admins.include?(collaborator.downcase) then
