@@ -111,7 +111,7 @@ loop do
 
     ratelimit_info(result.data.rate_limit)
 
-    if collaborator_paging.has_next_page then
+    if collaborator_paging&.has_next_page then
       collaborator_cursor = collaborator_paging.end_cursor
       STDERR.puts "Next page of collaborators, from #{collaborator_cursor}"
     else
