@@ -1,18 +1,18 @@
 # Usage: GITHUB_API_TOKEN=abcdefabcdef ruby permission-report.rb > report.json
 
-require "graphql/client"
-require "graphql/client/http"
-require "httparty"
-require "pp"
-require "json"
+require 'graphql/client'
+require 'graphql/client/http'
+require 'httparty'
+require 'pp'
+require 'json'
 
-$auth = "bearer #{ENV["GITHUB_API_TOKEN"]}"
+$auth = "bearer #{ENV['GITHUB_API_TOKEN']}"
 
 module GitHubGraphQL
-  HTTP = GraphQL::Client::HTTP.new("https://api.github.com/graphql") do
+  HTTP = GraphQL::Client::HTTP.new('https://api.github.com/graphql') do
     def headers(context)
       {
-        "Authorization" => $auth
+        'Authorization' => $auth
       }
     end
   end
@@ -64,15 +64,15 @@ GRAPHQL
 
 $table_data = []
 
-response = HTTParty.get("https://api.github.com/orgs/jenkinsci/members?role=admin", :headers => {
-  "Authorization" => $auth,
-  "User-Agent" => "JenkinsCI report"
+response = HTTParty.get('https://api.github.com/orgs/jenkinsci/members?role=admin', :headers => {
+  'Authorization' => $auth,
+  'User-Agent' => 'JenkinsCI report'
 })
 
-$org_admins = response.parsed_response.map{|user| user["login"]}
+$org_admins = response.parsed_response.map{|user| user['login']}
 
 def record_collaborator(repo_name, collaborator, permission)
-  unless permission == "READ" or $org_admins.include? collaborator then
+  unless permission == 'READ' or $org_admins.include? collaborator then
     $table_data << [ repo_name, collaborator, permission ]
   end
 end
@@ -94,8 +94,8 @@ loop do
     sleep 5
     if error_count > 5 then
       # fatal
-      STDERR.puts "Consecutive error count limit reached, aborting"
-      abort("Too many errors")
+      STDERR.puts 'Consecutive error count limit reached, aborting'
+      abort('Too many errors')
     else
       error_count += 1
     end
