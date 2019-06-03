@@ -1,20 +1,21 @@
 # Usage: GITHUB_API_TOKEN=abcdefabcdef ruby permission-report.rb > report.json
 
-require "graphql/client"
-require "graphql/client/http"
+require 'graphql/client'
+require 'graphql/client/http'
+require 'httparty'
 require 'pp'
 require 'json'
 
-$token = ENV['GITHUB_API_TOKEN']
+$auth = "bearer #{ENV['GITHUB_API_TOKEN']}"
 
 module GitHubGraphQL
-  HTTP = GraphQL::Client::HTTP.new("https://api.github.com/graphql") do
+  HTTP = GraphQL::Client::HTTP.new('https://api.github.com/graphql') do
     def headers(context)
       {
-        "Authorization" => "bearer #{$token}"
+        'Authorization' => $auth
       }
     end
-  end  
+  end
   Schema = GraphQL::Client.load_schema(HTTP)
   Client = GraphQL::Client.new(schema: Schema, execute: HTTP)
 end
@@ -63,9 +64,15 @@ GRAPHQL
 
 $table_data = []
 
+response = HTTParty.get('https://api.github.com/orgs/jenkinsci/members?role=admin', :headers => {
+  'Authorization' => $auth,
+  'User-Agent' => 'JenkinsCI report'
+})
+
+$org_admins = response.parsed_response.map{|user| user['login']}
+
 def record_collaborator(repo_name, collaborator, permission)
-  # TODO: obtain list of org admins to filter from output
-  if permission != "READ" and collaborator != "olivergondza" and collaborator != "jenkinsadmin" and collaborator != "rtyler" and collaborator != "kohsuke" and collaborator != "daniel-beck" and collaborator != "oleg-nenashev" then
+  unless permission == 'READ' or $org_admins.include? collaborator then
     $table_data << [ repo_name, collaborator, permission ]
   end
 end
@@ -87,8 +94,8 @@ loop do
     sleep 5
     if error_count > 5 then
       # fatal
-      STDERR.puts "Consecutive error count limit reached, aborting"
-      abort("Too many errors")
+      STDERR.puts 'Consecutive error count limit reached, aborting'
+      abort('Too many errors')
     else
       error_count += 1
     end
@@ -111,7 +118,7 @@ loop do
 
     ratelimit_info(result.data.rate_limit)
 
-    if collaborator_paging.has_next_page then
+    if collaborator_paging&.has_next_page then
       collaborator_cursor = collaborator_paging.end_cursor
       STDERR.puts "Next page of collaborators, from #{collaborator_cursor}"
     else
