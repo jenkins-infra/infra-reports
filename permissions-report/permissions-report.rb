@@ -92,7 +92,7 @@ loop do
   if !result.errors[:data].empty? then
     STDERR.puts result.errors[:data]
     sleep 5
-    if error_count > 10 then
+    if error_count > 20 then
       # fatal
       STDERR.puts 'Consecutive error count limit reached, aborting'
       abort('Too many errors')
