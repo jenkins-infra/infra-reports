@@ -23,7 +23,7 @@ pipeline {
 				}
 			}
 			agent {
-				label 'docker'
+				label 'docker&&linux'
 			}
 			steps {
 				sh 'docker build permissions-report -t permissions-report'
@@ -41,7 +41,7 @@ pipeline {
 			parallel {
 				stage('Artifactory Permissions') {
 					agent {
-						label 'docker'
+						label 'docker&&linux'
 					}
 					environment {
 						ARTIFACTORY_AUTH = credentials('artifactoryAdmin')
@@ -55,7 +55,7 @@ pipeline {
 				}
 				stage('GitHub Permissions') {
 					agent {
-						label 'docker'
+						label 'docker&&linux'
 					}
 					environment {
 						GITHUB_API = credentials('github-token')
