@@ -1,4 +1,4 @@
-FROM ruby:2.4-slim
+FROM ruby:2.5-slim
 
 RUN gem install graphql-client httparty
 
