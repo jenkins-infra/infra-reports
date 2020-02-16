@@ -34,7 +34,7 @@ query($repository_cursor: String, $collaborator_cursor: String) {
       edges {
         node {
           name
-          collaborators(first: 100, after: $collaborator_cursor) {
+          collaborators(first: 50, after: $collaborator_cursor) {
             totalCount
             pageInfo {
               startCursor
