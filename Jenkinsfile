@@ -8,7 +8,7 @@ pipeline {
 
 	options {
 		// 6 hours timeout combined with lock and inverse precedence to will properly gate the GitHub permissions report
-		timeout(time: 20, unit: 'HOURS')
+		timeout(time: 25, unit: 'HOURS')
 	}
 
 	agent none
