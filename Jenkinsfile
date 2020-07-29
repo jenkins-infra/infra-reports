@@ -26,6 +26,7 @@ pipeline {
 				label 'docker'
 			}
 			steps {
+				sh 'docker build permissions-report -t fork-report'
 				sh 'docker build permissions-report -t permissions-report'
 				sh 'docker build artifactory-users-report -t artifactory-users-report'
 			}
@@ -39,6 +40,20 @@ pipeline {
 				}
 			}
 			parallel {
+				stage('GitHub Forks') {
+					agent {
+						label 'docker'
+					}
+					environment {
+						GITHUB_API = credentials('github-token')
+					}
+					steps {
+						sh 'docker build fork-report -t fork-report'
+						sh 'docker run -e GITHUB_API_TOKEN=$GITHUB_API_PSW fork-report > github-jenkinsci-fork-report.json'
+						archiveArtifacts 'github-jenkinsci-fork-report.json'
+						publishReports ([ 'github-jenkinsci-fork-report.json' ])
+					}
+				}
 				stage('Artifactory Permissions') {
 					agent {
 						label 'docker'
