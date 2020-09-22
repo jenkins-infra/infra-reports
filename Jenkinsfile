@@ -9,6 +9,8 @@ pipeline {
 	options {
 		// 6 hours timeout combined with lock and inverse precedence to will properly gate the GitHub permissions report
 		timeout(time: 25, unit: 'HOURS')
+                // Retain last 36 hours of attempts
+                buildDiscarder logRotator(numToKeepStr: '36')
 	}
 
 	agent none
