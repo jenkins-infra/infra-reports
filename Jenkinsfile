@@ -83,6 +83,20 @@ pipeline {
 						publishReports ([ 'jira-users-report.json' ])
 					}
 				}
+				stage('Maintainers Jira Info') {
+					agent {
+						label 'docker'
+					}
+					environment {
+						JIRA_AUTH = credentials('jiraAuth')
+					}
+					steps {
+						sh 'docker build maintainers-info-report -t maintainers-info-report'
+						sh 'docker run -e JIRA_AUTH=$JIRA_AUTH maintainers-info-report > maintainers-info-report.json'
+						archiveArtifacts 'maintainers-info-report.json'
+						publishReports ([ 'maintainers-info-report.json' ])
+					}
+				}
 				stage('GitHub Permissions') {
 					agent {
 						label 'docker'
