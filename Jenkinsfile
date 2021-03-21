@@ -30,6 +30,7 @@ pipeline {
 				sh 'docker build permissions-report -t permissions-report'
 				sh 'docker build artifactory-users-report -t artifactory-users-report'
 				sh 'docker build jira-users-report -t jira-users-report'
+				sh 'docker build maintainers-info-report -t maintainers-info-report'
 			}
 		}
 
