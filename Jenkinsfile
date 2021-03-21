@@ -30,6 +30,7 @@ pipeline {
 				sh 'docker build permissions-report -t permissions-report'
 				sh 'docker build artifactory-users-report -t artifactory-users-report'
 				sh 'docker build jira-users-report -t jira-users-report'
+				sh 'docker build maintainers-info-report -t maintainers-info-report'
 			}
 		}
 
@@ -81,6 +82,20 @@ pipeline {
 						sh 'docker run -e JIRA_AUTH=$JIRA_AUTH jira-users-report > jira-users-report.json'
 						archiveArtifacts 'jira-users-report.json'
 						publishReports ([ 'jira-users-report.json' ])
+					}
+				}
+				stage('Maintainers Jira Info') {
+					agent {
+						label 'docker'
+					}
+					environment {
+						JIRA_AUTH = credentials('jiraAuth')
+					}
+					steps {
+						sh 'docker build maintainers-info-report -t maintainers-info-report'
+						sh 'docker run -e JIRA_AUTH=$JIRA_AUTH maintainers-info-report > maintainers-info-report.json'
+						archiveArtifacts 'maintainers-info-report.json'
+						publishReports ([ 'maintainers-info-report.json' ])
 					}
 				}
 				stage('GitHub Permissions') {
