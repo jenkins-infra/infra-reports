@@ -25,7 +25,7 @@ CollaboratorsQuery = GitHubGraphQL::Client.parse <<-'GRAPHQL'
 
 query($repository_cursor: String, $collaborator_cursor: String) {
   organization(login: "jenkinsci") {
-    repositories(first: 20, after: $repository_cursor) {
+    repositories(first: 10, after: $repository_cursor) {
       pageInfo {
         startCursor
         hasNextPage
@@ -34,7 +34,7 @@ query($repository_cursor: String, $collaborator_cursor: String) {
       edges {
         node {
           name
-          collaborators(first: 100, after: $collaborator_cursor) {
+          collaborators(first: 80, after: $collaborator_cursor) {
             totalCount
             pageInfo {
               startCursor
