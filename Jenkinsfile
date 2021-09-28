@@ -79,7 +79,7 @@ pipeline {
 					}
 					steps {
 						sh 'docker build jira-users-report -t jira-users-report'
-						sh 'docker run -e JIRA_AUTH=$JIRA_AUTH jira-users-report > jira-users-report.json'
+						sh 'docker run -e JIRA_AUTH="${JIRA_AUTH_USR}:${JIRA_AUTH_PSW}" jira-users-report > jira-users-report.json'
 						archiveArtifacts 'jira-users-report.json'
 						publishReports ([ 'jira-users-report.json' ])
 					}
@@ -93,7 +93,7 @@ pipeline {
 					}
 					steps {
 						sh 'docker build maintainers-info-report -t maintainers-info-report'
-						sh 'docker run -e JIRA_AUTH=$JIRA_AUTH maintainers-info-report > maintainers-info-report.json'
+						sh 'docker run -e JIRA_AUTH="${JIRA_AUTH_USR}:${JIRA_AUTH_PSW}" maintainers-info-report > maintainers-info-report.json'
 						archiveArtifacts 'maintainers-info-report.json'
 						publishReports ([ 'maintainers-info-report.json' ])
 					}
