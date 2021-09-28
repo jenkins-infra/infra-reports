@@ -3,7 +3,7 @@
 pipeline {
 
 	triggers {
-		cron('H * * * *')
+		cron('@daily')
 	}
 
 	options {
