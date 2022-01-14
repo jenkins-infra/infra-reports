@@ -1,4 +1,4 @@
-FROM ruby:2.6.5-alpine3.10
+FROM ruby:3.1.0-alpine
 
 RUN gem install graphql-client httparty
 
