@@ -103,14 +103,16 @@ pipeline {
 						label 'docker&&linux'
 					}
 					environment {
-						GITHUB_API = credentials('github-token')
+						GITHUB_PRIVATE_KEY_B64 = credentials('githubapp-jenkins-infra-reports-private-key-b64')
+						GITHUB_APP_IDENTIFIER = credentials('githubapp-jenkins-infra-reports-app-identifier')
+						GITHUB_ORG_NAME = "jenkinsci"
 					}
 					options {
 						lock(resource: 'github-permissions', inversePrecedence: true)
 					}
 					steps {
 						sh 'docker build permissions-report -t permissions-report'
-						sh 'docker run -e GITHUB_API_TOKEN=$GITHUB_API_PSW permissions-report > github-jenkinsci-permissions-report.json'
+						sh 'docker run -e GITHUB_PRIVATE_KEY_B64 -e GITHUB_APP_IDENTIFIER -e GITHUB_ORG_NAME permissions-report > github-jenkinsci-permissions-report.json'
 						archiveArtifacts 'github-jenkinsci-permissions-report.json'
 						publishReports ([ 'github-jenkinsci-permissions-report.json' ])
 					}
