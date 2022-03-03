@@ -11,9 +11,9 @@ require 'time'
 require 'base64'
 
 # Expects that the private key in PEM format. Converts the newlines
-PRIVATE_KEY = OpenSSL::PKey::RSA.new(Base64.decode64(ENV['GITHUB_PRIVATE_KEY_B64']).gsub('\n', "\n"))
+PRIVATE_KEY = OpenSSL::PKey::RSA.new(Base64.decode64(ENV['GITHUB_APP_PRIVATE_KEY_B64']).gsub('\n', "\n"))
 # The GitHub App's identifier (type integer) set when registering an app.
-APP_IDENTIFIER = ENV['GITHUB_APP_IDENTIFIER']
+APP_IDENTIFIER = ENV['GITHUB_APP_ID']
 # The organization to scan
 GITHUB_ORG_NAME = ENV['GITHUB_ORG_NAME']
 
