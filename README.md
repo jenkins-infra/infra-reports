@@ -23,8 +23,14 @@ Format example:
 
 ### Usage
 
+We use a Github App for that, you'll need to define the following environment variables to run the script:
+
+- GITHUB_APP_PRIVATE_KEY_B64: The Github App private key in PEM format, encoded in base64
+- GITHUB_APP_ID: The GitHub App's identifier (type integer) set when registering an app
+- GITHUB_ORG_NAME: The Github organization name (ex: "jenkinsci")
+
 	docker build permissions-report -t permissions-report
-	docker run -e GITHUB_API_TOKEN=1234567890abcdef1234567890abcdef permissions-report
+	docker run -e GITHUB_APP_PRIVATE_KEY_B64 -e GITHUB_APP_ID -e GITHUB_ORG_NAME permissions-report
 
 ## Artifactory Users Report
 

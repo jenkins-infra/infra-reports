@@ -1,18 +1,87 @@
-# Usage: GITHUB_API_TOKEN=abcdefabcdef ruby permission-report.rb > report.json
+# Usage: ruby permission-report.rb > report.json
 
 require 'graphql/client'
 require 'graphql/client/http'
 require 'httparty'
 require 'pp'
 require 'json'
+require 'openssl'
+require 'jwt'
+require 'time'
+require 'base64'
 
-$auth = "bearer #{ENV['GITHUB_API_TOKEN']}"
+# Expects that the private key in PEM format. Converts the newlines
+PRIVATE_KEY = OpenSSL::PKey::RSA.new(Base64.decode64(ENV['GITHUB_APP_PRIVATE_KEY_B64']).gsub('\n', "\n"))
+# The GitHub App's identifier (type integer) set when registering an app.
+APP_IDENTIFIER = ENV['GITHUB_APP_ID']
+# The organization to scan
+GITHUB_ORG_NAME = ENV['GITHUB_ORG_NAME']
+
+# Saves the raw payload and converts the payload to JSON format
+def get_payload_request(request)
+  # request.body is an IO or StringIO object
+  # Rewind in case someone already read it
+  request.body.rewind
+  # The raw text of the body is required for webhook signature verification
+  @payload_raw = request.body.read
+  begin
+    @payload = JSON.parse @payload_raw
+  rescue => e
+    fail  "Invalid JSON (#{e}): #{@payload_raw}"
+  end
+end
+
+# Generate a JWT to authenticate the Github App
+def get_jwt
+  @payload = {
+      # The time that this JWT was issued, _i.e._ now.
+      iat: Time.now.to_i,
+
+      # JWT expiration time (10 minute maximum)
+      exp: Time.now.to_i + (10 * 60),
+
+      # Your GitHub App's identifier number
+      iss: APP_IDENTIFIER
+  }
+  
+  # Cryptographically sign the JWT.
+  @jwt = JWT.encode(@payload, PRIVATE_KEY, 'RS256')
+end
+
+$jwt = "Bearer #{get_jwt}"
+$userAgent = "Jenkins Infra Github App permissions-report (id: #{APP_IDENTIFIER})"
+
+# List installation for the Github App (ref: https://docs.github.com/en/rest/reference/apps#list-installations-for-the-authenticated-app)
+response = HTTParty.get('https://api.github.com/app/installations', :headers => {
+  'Authorization' => $jwt,
+  'User-Agent' => $userAgent
+})
+installationsResponse = response.parsed_response
+$installationId = 0
+installationsResponse.each { |installation|
+  if installation['account']['login'] == GITHUB_ORG_NAME then
+    $installationId = installation['id']
+  end
+}
+if $installationId > 0 then
+  STDERR.puts "Running permissions-report on the organization #{GITHUB_ORG_NAME}"
+else
+  abort "Error: no Github App installation for the organization #{GITHUB_ORG_NAME}"
+end
+
+# Retrieve the Installation Access Token of the Github App (ref: https://docs.github.com/en/rest/reference/apps#create-an-installation-access-token-for-an-app)
+response = HTTParty.post("https://api.github.com/app/installations/#{$installationId}/access_tokens", :headers => {
+  'Authorization' => $jwt,
+  'User-Agent' => $userAgent
+})
+$auth = "Bearer #{response.parsed_response['token']}"
 
 module GitHubGraphQL
   HTTP = GraphQL::Client::HTTP.new('https://api.github.com/graphql') do
     def headers(context)
       {
-        'Authorization' => $auth
+        'Authorization' => $auth,
+        'User-Agent' => $userAgent
       }
     end
   end
@@ -20,12 +89,11 @@ module GitHubGraphQL
   Client = GraphQL::Client.new(schema: Schema, execute: HTTP)
 end
 
-
 CollaboratorsQuery = GitHubGraphQL::Client.parse <<-'GRAPHQL'
 
-query($repository_cursor: String, $collaborator_cursor: String) {
-  organization(login: "jenkinsci") {
-    repositories(first: 10, after: $repository_cursor) {
+query($github_org_name: String!, $repository_cursor: String, $collaborator_cursor: String) {
+  organization(login: $github_org_name) {
+    repositories(first: 10, after: $repository_cursor, privacy: PUBLIC) {
       pageInfo {
         startCursor
         hasNextPage
@@ -64,9 +132,9 @@ GRAPHQL
 
 $table_data = []
 
-response = HTTParty.get('https://api.github.com/orgs/jenkinsci/members?role=admin', :headers => {
+response = HTTParty.get("https://api.github.com/orgs/#{GITHUB_ORG_NAME}/members?role=admin", :headers => {
   'Authorization' => $auth,
-  'User-Agent' => 'JenkinsCI report'
+  'User-Agent' => $userAgent
 })
 
 $org_admins = response.parsed_response.map{|user| user['login']}
@@ -87,7 +155,11 @@ error_count = 0
 
 loop do
   STDERR.puts "Calling with cursors: repository #{repository_cursor}, collaborator #{collaborator_cursor}"
-  result = GitHubGraphQL::Client.query(CollaboratorsQuery, variables: {repository_cursor: repository_cursor, collaborator_cursor: collaborator_cursor})
+  result = GitHubGraphQL::Client.query(CollaboratorsQuery, variables: {
+    github_org_name: GITHUB_ORG_NAME,
+    repository_cursor: repository_cursor,
+    collaborator_cursor: collaborator_cursor
+  })
 
   if !result.errors[:data].empty? then
     STDERR.puts result.errors[:data]

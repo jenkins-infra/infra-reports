@@ -1,6 +1,8 @@
-FROM ruby:3.1.0-alpine
+FROM ruby:3.1.1-alpine3.15
 
-RUN gem install graphql-client httparty
+RUN apk add openssl-dev openssl build-base
+
+RUN gem install graphql-client httparty jwt time openssl base64
 
 COPY permissions-report.rb /
 
