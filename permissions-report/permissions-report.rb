@@ -11,11 +11,23 @@ require 'time'
 require 'base64'
 
 # Expects that the private key in PEM format. Converts the newlines
-PRIVATE_KEY = OpenSSL::PKey::RSA.new(Base64.decode64(ENV['GITHUB_APP_PRIVATE_KEY_B64']).gsub('\n', "\n"))
+if ENV['GITHUB_APP_PRIVATE_KEY_B64'] == '' then
+  abort "Error: the environment variable GITHUB_APP_PRIVATE_KEY_B64 is empty."
+else
+  PRIVATE_KEY = OpenSSL::PKey::RSA.new(Base64.decode64(ENV['GITHUB_APP_PRIVATE_KEY_B64']).gsub('\n', "\n"))
+end
+
 # The GitHub App's identifier (type integer) set when registering an app.
 APP_IDENTIFIER = ENV['GITHUB_APP_ID']
+if APP_IDENTIFIER == '' then
+  abort "Error: the environment variable GITHUB_APP_ID is empty."
+end
+
 # The organization to scan
 GITHUB_ORG_NAME = ENV['GITHUB_ORG_NAME']
+if GITHUB_ORG_NAME == '' then
+  abort "Error: the environment variable GITHUB_ORG_NAME is empty."
+end
 
 # Saves the raw payload and converts the payload to JSON format
 def get_payload_request(request)
@@ -66,9 +78,9 @@ def get_auth_token
   else
     abort "Error: no Github App installation for the organization #{GITHUB_ORG_NAME}"
   end
-
+  
   # Retrieve the Installation Access Token of the Github App (ref: https://docs.github.com/en/rest/reference/apps#create-an-installation-access-token-for-an-app)
-  response = HTTParty.post("https://api.github.com/app/installations/#{$installationId}/access_tokens", :headers => {
+  response = HTTParty.post("https://api.github.com/app/installations/#{installationId}/access_tokens", :headers => {
     'Authorization' => jwt,
     'User-Agent' => $userAgent
   })
@@ -80,8 +92,11 @@ $auth = get_auth_token
 module GitHubGraphQL
   HTTP = GraphQL::Client::HTTP.new('https://api.github.com/graphql') do
     def headers(context)
+      if context.has_key?(:authorization) then
+        $auth = context[:authorization]
+      end
       {
-        'Authorization' => context[:authorization] != '' ? context[:authorization] : $auth,
+        'Authorization' => $auth,
         'User-Agent' => $userAgent
       }
     end
@@ -160,6 +175,7 @@ loop do
   # Query with a new token every once in a while passed as context
   counter += 1
   if counter % 50 == 0 then
+    STDERR.puts "Generating a new token (repo counter: #{counter})"
     $auth = get_auth_token
   end
   result = GitHubGraphQL::Client.query(CollaboratorsQuery, variables: {
