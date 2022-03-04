@@ -171,7 +171,7 @@ loop do
   STDERR.puts "Calling with cursors: repository #{repository_cursor}, collaborator #{collaborator_cursor}"
   # Query with a new token every once in a while passed as context
   counter += 1
-  if counter % 50 == 0 then
+  if counter % 500 == 0 then
     STDERR.puts "Generating a new token (repo counter: #{counter})"
     $auth = get_auth_token
   end
