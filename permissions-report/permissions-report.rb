@@ -92,11 +92,8 @@ $auth = get_auth_token
 module GitHubGraphQL
   HTTP = GraphQL::Client::HTTP.new('https://api.github.com/graphql') do
     def headers(context)
-      if context.has_key?(:authorization) then
-        $auth = context[:authorization]
-      end
       {
-        'Authorization' => $auth,
+        'Authorization' => context.has_key?(:authorization) ? context[:authorization] : $auth,
         'User-Agent' => $userAgent
       }
     end
