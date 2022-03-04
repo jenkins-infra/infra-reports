@@ -11,11 +11,23 @@ require 'time'
 require 'base64'
 
 # Expects that the private key in PEM format. Converts the newlines
-PRIVATE_KEY = OpenSSL::PKey::RSA.new(Base64.decode64(ENV['GITHUB_APP_PRIVATE_KEY_B64']).gsub('\n', "\n"))
+if ENV['GITHUB_APP_PRIVATE_KEY_B64'] == '' then
+  abort "Error: the environment variable GITHUB_APP_PRIVATE_KEY_B64 is empty."
+else
+  PRIVATE_KEY = OpenSSL::PKey::RSA.new(Base64.decode64(ENV['GITHUB_APP_PRIVATE_KEY_B64']).gsub('\n', "\n"))
+end
+
 # The GitHub App's identifier (type integer) set when registering an app.
 APP_IDENTIFIER = ENV['GITHUB_APP_ID']
+if APP_IDENTIFIER == '' then
+  abort "Error: the environment variable GITHUB_APP_ID is empty."
+end
+
 # The organization to scan
 GITHUB_ORG_NAME = ENV['GITHUB_ORG_NAME']
+if GITHUB_ORG_NAME == '' then
+  abort "Error: the environment variable GITHUB_ORG_NAME is empty."
+end
 
 # Saves the raw payload and converts the payload to JSON format
 def get_payload_request(request)
@@ -31,9 +43,11 @@ def get_payload_request(request)
   end
 end
 
-# Generate a JWT to authenticate the Github App
-def get_jwt
-  @payload = {
+$userAgent = "Jenkins Infra Github App permissions-report (id: #{APP_IDENTIFIER})"
+
+def get_auth_token
+  # Generate a JWT to authenticate the Github App
+  payload = {
       # The time that this JWT was issued, _i.e._ now.
       iat: Time.now.to_i,
 
@@ -45,42 +59,41 @@ def get_jwt
   }
   
   # Cryptographically sign the JWT.
-  @jwt = JWT.encode(@payload, PRIVATE_KEY, 'RS256')
-end
+  jwt = "Bearer #{JWT.encode(payload, PRIVATE_KEY, 'RS256')}"
 
-$jwt = "Bearer #{get_jwt}"
-$userAgent = "Jenkins Infra Github App permissions-report (id: #{APP_IDENTIFIER})"
-
-# List installation for the Github App (ref: https://docs.github.com/en/rest/reference/apps#list-installations-for-the-authenticated-app)
-response = HTTParty.get('https://api.github.com/app/installations', :headers => {
-  'Authorization' => $jwt,
-  'User-Agent' => $userAgent
-})
-installationsResponse = response.parsed_response
-$installationId = 0
-installationsResponse.each { |installation|
-  if installation['account']['login'] == GITHUB_ORG_NAME then
-    $installationId = installation['id']
+  # List installation for the Github App (ref: https://docs.github.com/en/rest/reference/apps#list-installations-for-the-authenticated-app)
+  response = HTTParty.get('https://api.github.com/app/installations', :headers => {
+    'Authorization' => jwt,
+    'User-Agent' => $userAgent
+  })
+  installationsResponse = response.parsed_response
+  installationId = 0
+  installationsResponse.each { |installation|
+    if installation['account']['login'] == GITHUB_ORG_NAME then
+      installationId = installation['id']
+    end
+  }
+  if installationId > 0 then
+    STDERR.puts "Running permissions-report on the organization #{GITHUB_ORG_NAME}"
+  else
+    abort "Error: no Github App installation for the organization #{GITHUB_ORG_NAME}"
   end
-}
-if $installationId > 0 then
-  STDERR.puts "Running permissions-report on the organization #{GITHUB_ORG_NAME}"
-else
-  abort "Error: no Github App installation for the organization #{GITHUB_ORG_NAME}"
+  
+  # Retrieve the Installation Access Token of the Github App (ref: https://docs.github.com/en/rest/reference/apps#create-an-installation-access-token-for-an-app)
+  response = HTTParty.post("https://api.github.com/app/installations/#{installationId}/access_tokens", :headers => {
+    'Authorization' => jwt,
+    'User-Agent' => $userAgent
+  })
+  auth = "Bearer #{response.parsed_response['token']}"
 end
 
-# Retrieve the Installation Access Token of the Github App (ref: https://docs.github.com/en/rest/reference/apps#create-an-installation-access-token-for-an-app)
-response = HTTParty.post("https://api.github.com/app/installations/#{$installationId}/access_tokens", :headers => {
-  'Authorization' => $jwt,
-  'User-Agent' => $userAgent
-})
-$auth = "Bearer #{response.parsed_response['token']}"
+$auth = get_auth_token
 
 module GitHubGraphQL
   HTTP = GraphQL::Client::HTTP.new('https://api.github.com/graphql') do
     def headers(context)
       {
-        'Authorization' => $auth,
+        'Authorization' => context.has_key?(:authorization) ? context[:authorization] : $auth,
         'User-Agent' => $userAgent
       }
     end
@@ -152,14 +165,21 @@ end
 repository_cursor = nil
 collaborator_cursor = nil
 error_count = 0
+counter = 0
 
 loop do
   STDERR.puts "Calling with cursors: repository #{repository_cursor}, collaborator #{collaborator_cursor}"
+  # Query with a new token every once in a while passed as context
+  counter += 1
+  if counter % 50 == 0 then
+    STDERR.puts "Generating a new token (repo counter: #{counter})"
+    $auth = get_auth_token
+  end
   result = GitHubGraphQL::Client.query(CollaboratorsQuery, variables: {
     github_org_name: GITHUB_ORG_NAME,
     repository_cursor: repository_cursor,
     collaborator_cursor: collaborator_cursor
-  })
+  }, context: {authorization: $auth})
 
   if !result.errors[:data].empty? then
     STDERR.puts result.errors[:data]
