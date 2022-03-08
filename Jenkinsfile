@@ -46,14 +46,15 @@ pipeline {
 					agent {
 						label 'docker'
 					}
-					environment {
-						GITHUB_API = credentials('github-token')
-					}
 					steps {
-						sh 'docker build fork-report -t fork-report'
-						sh 'docker run -e GITHUB_API_TOKEN=$GITHUB_API_PSW fork-report > github-jenkinsci-fork-report.json'
-						archiveArtifacts 'github-jenkinsci-fork-report.json'
-						publishReports ([ 'github-jenkinsci-fork-report.json' ])
+						withCredentials(
+							[usernamePassword(credentialsId: 'jenkins-infra-reports', usernameVariable: 'GITHUB_APP', passwordVariable: 'GITHUB_ACCESS_TOKEN')]
+						) {
+							sh 'docker build fork-report -t fork-report'
+							sh 'docker run -e GITHUB_API_TOKEN=$GITHUB_ACCESS_TOKEN fork-report > github-jenkinsci-fork-report.json'
+							archiveArtifacts 'github-jenkinsci-fork-report.json'
+							publishReports ([ 'github-jenkinsci-fork-report.json' ])
+						}
 					}
 				}
 				stage('Artifactory Users') {
