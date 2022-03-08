@@ -46,9 +46,6 @@ pipeline {
 					agent {
 						label 'docker'
 					}
-					environment {
-						GITHUB_API = credentials('github-token')
-					}
 					steps {
 						withCredentials(
 							[usernamePassword(credentialsId: 'jenkins-infra-reports', usernameVariable: 'GITHUB_APP', passwordVariable: 'GITHUB_ACCESS_TOKEN')]
