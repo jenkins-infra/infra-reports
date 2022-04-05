@@ -57,7 +57,7 @@ def get_auth_token
       # Your GitHub App's identifier number
       iss: APP_IDENTIFIER
   }
-  
+
   # Cryptographically sign the JWT.
   jwt = "Bearer #{JWT.encode(payload, PRIVATE_KEY, 'RS256')}"
 
@@ -78,7 +78,7 @@ def get_auth_token
   else
     abort "Error: no Github App installation for the organization #{GITHUB_ORG_NAME}"
   end
-  
+
   # Retrieve the Installation Access Token of the Github App (ref: https://docs.github.com/en/rest/reference/apps#create-an-installation-access-token-for-an-app)
   response = HTTParty.post("https://api.github.com/app/installations/#{installationId}/access_tokens", :headers => {
     'Authorization' => jwt,

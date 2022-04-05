@@ -1,0 +1,46 @@
+@Library('pipeline-library@pull/348/head') _
+
+def cronExpr = env.BRANCH_IS_PRIMARY ? '@daily' : ''
+def reportName = env.BRANCH_IS_PRIMARY ? 'github-jenkinsci-permissions-report.json' : "github-jenkinsci-permissions-report-${env.BRANCH_NAME}.json"
+
+pipeline {
+  triggers {
+    cron(cronExpr)
+  }
+  options {
+    // This pipeline takes 6-7 hours max to execute
+    timeout(time: 10, unit: 'HOURS')
+    lock(resource: 'infra-reports-github-permissions', inversePrecedence: true)
+  }
+  agent {
+    kubernetes {
+      yamlFile 'JenkinsAgentPodTemplate.yaml'
+    }
+  }
+  stages {
+    stage('Generate GitHub Permissions Report') {
+        environment {
+            GITHUB_APP_PRIVATE_KEY_B64 = credentials('githubapp-jenkins-infra-reports-private-key-b64')
+            GITHUB_APP_ID = credentials('githubapp-jenkins-infra-reports-app-identifier')
+            GITHUB_ORG_NAME = "jenkinsci"
+            REPORT_NAME = "${reportName}"
+          }
+      steps {
+        dir('permissions-report') {
+          sh 'ruby ./permissions-report.rb > "${REPORT_NAME}"'
+          archiveArtifacts reportName
+        }
+      }
+    }
+    stage('Publish GitHub Permissions Report') {
+      when {
+        expression { env.BRANCH_IS_PRIMARY }
+      }
+      steps {
+        dir('permissions-report') {
+          publishReports ([reportName])
+        }
+      }
+    }
+  }
+}

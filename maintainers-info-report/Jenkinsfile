@@ -1,0 +1,44 @@
+@Library('pipeline-library@pull/348/head') _
+
+def cronExpr = env.BRANCH_IS_PRIMARY ? '@dahourlyily' : ''
+def reportName = env.BRANCH_IS_PRIMARY ? 'maintainers-info-report.json' : "maintainers-info-report-${env.BRANCH_NAME}.json"
+
+pipeline {
+  triggers {
+    cron(cronExpr)
+  }
+  options {
+    // This pipeline takes 30-40 minutes to execute
+    timeout(time: 1, unit: 'HOURS')
+    lock(resource: 'infra-reports-maintainers-info', inversePrecedence: true)
+  }
+  agent {
+    kubernetes {
+      yamlFile 'JenkinsAgentPodTemplate.yaml'
+    }
+  }
+  stages {
+    stage('Generate Maintainers Info Report') {
+      environment {
+        JIRA_AUTH = credentials('jiraAuth')
+        REPORT_NAME = "${reportName}"
+      }
+      steps {
+        dir('maintainers-info-report') {
+          sh 'bash ./maintainers-info-report.sh > "${REPORT_NAME}"'
+          archiveArtifacts reportName
+        }
+      }
+    }
+    stage('Publish Maintainers Info Report') {
+      when {
+        expression { env.BRANCH_IS_PRIMARY }
+      }
+      steps {
+        dir('maintainers-info-report') {
+          publishReports ([reportName])
+        }
+      }
+    }
+  }
+}
