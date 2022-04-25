@@ -6,7 +6,7 @@ require 'httparty'
 require 'pp'
 require 'json'
 
-$auth = "bearer #{ENV['GITHUB_API_TOKEN']}"
+$auth = "bearer #{ENV['GITHUB_AUTH_PSW']}"
 
 module GitHubGraphQL
   HTTP = GraphQL::Client::HTTP.new('https://api.github.com/graphql') do

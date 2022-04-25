@@ -1,0 +1,44 @@
+@Library('pipeline-library@pull/348/head') _
+
+def cronExpr = env.BRANCH_IS_PRIMARY ? '@hourly' : ''
+def reportName = env.BRANCH_IS_PRIMARY ? 'artifactory-ldap-users-report.json' : "artifactory-ldap-users-report-${env.BRANCH_NAME}.json"
+
+pipeline {
+  triggers {
+    cron(cronExpr)
+  }
+  options {
+    // This pipeline takes 1-2 minutes max to execute
+    timeout(time: 10, unit: 'MINUTES')
+    lock(resource: 'infra-reports-artifactory-users', inversePrecedence: true)
+  }
+  agent {
+    kubernetes {
+      yamlFile 'JenkinsAgentPodTemplate.yaml'
+    }
+  }
+  stages {
+    stage('Generate Artifactory Users Report') {
+      environment {
+        ARTIFACTORY_AUTH = credentials('artifactoryAdmin')
+        REPORT_NAME = "${reportName}"
+      }
+      steps {
+        dir('artifactory-users-report') {
+          sh 'bash ./user-report.sh > "${REPORT_NAME}"'
+          archiveArtifacts reportName
+        }
+      }
+    }
+    stage('Publish Artifactory Users Report') {
+      when {
+        expression { env.BRANCH_IS_PRIMARY }
+      }
+      steps {
+        dir('artifactory-users-report') {
+          publishReports ([reportName])
+        }
+      }
+    }
+  }
+}
