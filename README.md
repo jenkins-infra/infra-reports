@@ -76,3 +76,23 @@ cd jira-users-report/
 export JIRA_AUTH=admin-username:admin-token
 bash ./user-report
 ```
+
+## Plugin Documentation Migration Report
+
+Creates an html file with the current state of the documentation migration project
+
+Consumed by docs-sig
+
+### Usage
+
+We use a Github App for that, you'll need to define the following environment variables to run the script:
+
+- GITHUB_APP_PRIVATE_KEY_B64: The Github App private key in PEM format, encoded in base64
+- GITHUB_APP_ID: The GitHub App's identifier (type integer) set when registering an app
+- GITHUB_ORG_NAME: The Github organization name (ex: "jenkinsci")
+
+```bash
+cd plugin-migration
+npm install
+node index.js > index.html
+```

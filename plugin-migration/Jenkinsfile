@@ -1,0 +1,48 @@
+@Library('pipeline-library@pull/348/head') _
+
+def cronExpr = env.BRANCH_IS_PRIMARY ? '@daily' : ''
+def reportName = env.BRANCH_IS_PRIMARY ? 'jenkins-plugin-migration.html' : "jenkins-plugin-migration-${env.BRANCH_NAME}.html"
+
+pipeline {
+  triggers {
+    cron(cronExpr)
+  }
+  options {
+    timeout(time: 10, unit: 'MINUTES')
+    lock(resource: 'infra-reports-plugin-migration', inversePrecedence: true)
+  }
+  agent {
+    kubernetes {
+      yamlFile 'JenkinsAgentPodTemplate.yaml'
+    }
+  }
+  stages {
+    stage('Generate GitHub Permissions Report') {
+        environment {
+            GITHUB_APP_PRIVATE_KEY_B64 = credentials('githubapp-jenkins-infra-reports-private-key-b64')
+            GITHUB_APP_ID = credentials('githubapp-jenkins-infra-reports-app-identifier')
+            GITHUB_ORG_NAME = "jenkinsci"
+            REPORT_NAME = "${reportName}"
+            NODE_ENV = "production"
+          }
+      steps {
+        dir('plugin-migration') {
+          sh 'npm ci'
+          sh 'node index.js > "${REPORT_NAME}"'
+          archiveArtifacts reportName
+        }
+      }
+    }
+    stage('Publish Plugin Migration Report') {
+      when {
+        expression { env.BRANCH_IS_PRIMARY }
+      }
+      steps {
+        dir('permissions-report') {
+          publishReports ([reportName])
+        }
+      }
+    }
+  }
+}
+
