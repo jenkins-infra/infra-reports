@@ -38,7 +38,7 @@ pipeline {
         expression { env.BRANCH_IS_PRIMARY }
       }
       steps {
-        dir('permissions-report') {
+        dir('plugin-migration') {
           publishReports ([reportName])
         }
       }
