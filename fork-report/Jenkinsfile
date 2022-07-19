@@ -26,7 +26,8 @@ pipeline {
       }
       steps {
         dir('fork-report') {
-          sh 'ruby ./fork-report.rb> "${REPORT_NAME}"'
+          sh 'bundle install'
+          sh 'bundle exec ruby ./fork-report.rb> "${REPORT_NAME}"'
           archiveArtifacts reportName
         }
       }
