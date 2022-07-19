@@ -27,7 +27,8 @@ pipeline {
           }
       steps {
         dir('permissions-report') {
-          sh 'ruby ./permissions-report.rb > "${REPORT_NAME}"'
+          sh 'bundle install'
+          sh 'bundle exec ruby ./permissions-report.rb > "${REPORT_NAME}"'
           archiveArtifacts reportName
         }
       }
