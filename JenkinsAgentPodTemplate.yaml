@@ -2,15 +2,15 @@ apiVersion: v1
 kind: Pod
 spec:
   containers:
-    - image: "jenkinsciinfra/builder:2.0.58"
+    - image: "jenkinsciinfra/builder:2.1.0"
       imagePullPolicy: "IfNotPresent"
       name: "jnlp"
       resources:
         limits:
-          memory: "512Mi"
+          memory: "768Mi"
           cpu: "1"
         requests:
-          memory: "512Mi"
+          memory: "768Mi"
           cpu: "1"
       securityContext:
         privileged: false
