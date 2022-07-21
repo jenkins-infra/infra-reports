@@ -52,11 +52,16 @@ async function main() {
   <!DOCTYPE html>
   <html lang="en">
     <head>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <title>Plugin Migration Progress</title>
-    <meta content="width=device-width, initial-scale=1" name="viewport">
-    <meta content="ie=edge" http-equiv="x-ua-compatible">
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta content="width=device-width, initial-scale=1" name="viewport" />
+    <meta content="ie=edge" http-equiv="x-ua-compatible" />
+    <meta name="generator" content="https://github.com/jenkins-infra/infra-reports/tree/main/plugin-migration" />
+    <meta name="generated_at" content="${new Date().toString()}" />
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://unpkg.com/bootstrap-table@1.20.2/dist/bootstrap-table.min.css">
   </head>
   <body>
     <div class="container">
@@ -65,10 +70,12 @@ async function main() {
 
       <table class="table table-bordered table-hover" data-sortable="true" data-sort-name="installs" data-sort-order="desc"  data-toggle="table">
         <thead class="thead-dark">
-          <th data-field="name" data-sortable="true">Plugin Name</th>
-          <th data-field="status" data-sortable="true">Status</th>
-          <th data-field="releaseDate" data-sortable="true">Last release</th>
-          <th data-field="installs" data-sortable="true">Installs</th>
+          <tr>
+            <th data-field="name" data-sortable="true">Plugin Name</th>
+            <th data-field="status" data-sortable="true">Status</th>
+            <th data-field="releaseDate" data-sortable="true">Last release</th>
+            <th data-field="installs" data-sortable="true">Installs</th>
+          </tr>
         </thead>
         <tbody>
       ${report.plugins.map(plugin => {
@@ -98,9 +105,6 @@ async function main() {
       </table>
       ${report.recent.length ? '<h3 class="mt-3">Recently merged</h3>' + report.recent.join(", ") : ''}
     </div>
-
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
-    <link rel="stylesheet" href="https://unpkg.com/bootstrap-table@1.20.2/dist/bootstrap-table.min.css">
 
     <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/popper.js@1.12.9/dist/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
