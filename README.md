@@ -12,7 +12,7 @@ You can check the exact image version by checking the Jenkins agent pod template
 
 ## Permissions Report
 
-Prints a two-dimensional JSON array optimized for use in [DataTables](https://www.datatables.net/).
+Prints a two-dimensional JSON array optimized for use in [DataTables](https://www.datatables.net/) hosted at [Source Code Hosting](https://www.jenkins.io/doc/developer/publishing/source-code-hosting/).
 
 Format example:
 
