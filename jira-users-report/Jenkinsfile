@@ -1,5 +1,3 @@
-@Library('pipeline-library@pull/348/head') _
-
 def cronExpr = env.BRANCH_IS_PRIMARY ? 'H H/2 * * *' : ''
 def reportName = env.BRANCH_IS_PRIMARY ? 'jira-users-report.json' : "jira-users-report-${env.BRANCH_NAME}.json"
 
