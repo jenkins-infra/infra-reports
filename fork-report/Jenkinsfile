@@ -1,5 +1,3 @@
-@Library('pipeline-library@pull/348/head') _
-
 def cronExpr = env.BRANCH_IS_PRIMARY ? '@daily' : ''
 def reportName = env.BRANCH_IS_PRIMARY ? 'github-jenkinsci-fork-report.json' : "github-jenkinsci-fork-report-${env.BRANCH_NAME}.json"
 
