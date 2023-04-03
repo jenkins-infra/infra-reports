@@ -2,7 +2,7 @@ apiVersion: v1
 kind: Pod
 spec:
   containers:
-    - image: "jenkinsciinfra/builder:2.1.0"
+    - image: "jenkinsciinfra/builder:2.2.35"
       imagePullPolicy: "IfNotPresent"
       name: "jnlp"
       resources:
