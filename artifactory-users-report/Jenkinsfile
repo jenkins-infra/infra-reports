@@ -9,6 +9,7 @@ pipeline {
     // This pipeline takes 1-2 minutes max to execute
     timeout(time: 10, unit: 'MINUTES')
     lock(resource: 'infra-reports-artifactory-users', inversePrecedence: true)
+    buildDiscarder logRotator(daysToKeepStr: '90')
   }
   agent {
     kubernetes {
