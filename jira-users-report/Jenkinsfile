@@ -9,6 +9,7 @@ pipeline {
     // This pipeline takes ~1.5 hour to run
     timeout(time: 2, unit: 'HOURS')
     lock(resource: 'infra-reports-jira-users', inversePrecedence: true)
+    buildDiscarder logRotator(daysToKeepStr: '90')
   }
   agent {
     kubernetes {
