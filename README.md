@@ -96,3 +96,18 @@ cd plugin-migration
 npm install
 node index.js > index.html
 ```
+
+## Mirrorbits Mirrors List Report
+
+Creates a report listing all the mirrors within Jenkins Download Mirrorbits
+
+Consumed by nothing yet
+
+### Usage
+
+WARNING need the docker image `allinone` (jenkinsciinfra/jenkins-agent-ubuntu-22.04) to have the correct tools (xq)
+
+```bash
+cd mirrorbits-mirrors-list/
+bash ./mirrorbits-mirrors-list.sh
+```

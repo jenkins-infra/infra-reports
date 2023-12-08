@@ -1,0 +1,37 @@
+def cronExpr = env.BRANCH_IS_PRIMARY ? '@hourly' : ''
+def reportName = env.BRANCH_IS_PRIMARY ? 'mirrorbits-mirrors-list.txt' : "mirrorbits-mirrors-list-${env.BRANCH_NAME}.txt"
+
+pipeline {
+  triggers {
+    cron(cronExpr)
+  }
+  options {
+    // This pipeline takes 1-2 minutes max to execute
+    timeout(time: 10, unit: 'MINUTES')
+    lock(resource: 'mirrorbits-mirrors-list', inversePrecedence: true)
+    buildDiscarder logRotator(daysToKeepStr: '90')
+  }
+  agent {
+    jnlp-linux-arm64
+  }
+  stages {
+    stage('Generate Mirrorbits Mirrors List') {
+      steps {
+        dir('mirrorbits-mirrors-list') {
+          sh 'bash ./mirrorbits-mirrors-list.sh > "${REPORT_NAME}"'
+          archiveArtifacts reportName
+        }
+      }
+    }
+    stage('Publish Mirrorbits Mirrors List') {
+      when {
+        expression { env.BRANCH_IS_PRIMARY }
+      }
+      steps {
+        dir('mirrorbits-mirrors-list') {
+          publishReports ([reportName])
+        }
+      }
+    }
+  }
+}
