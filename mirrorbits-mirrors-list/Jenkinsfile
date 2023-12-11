@@ -12,9 +12,12 @@ pipeline {
     buildDiscarder logRotator(daysToKeepStr: '90')
   }
   agent {
-    jnlp-linux-arm64
+    label 'jnlp-linux-arm64'
   }
   stages {
+    stage('Install xq temporary step') {
+      curl -sSL https://raw.githubusercontent.com/sibprogrammer/xq/v1.2.3/scripts/install.sh | sudo bash
+    }
     stage('Generate Mirrorbits Mirrors List') {
       steps {
         dir('mirrorbits-mirrors-list') {
