@@ -1,5 +1,5 @@
 def cronExpr = env.BRANCH_IS_PRIMARY ? '@hourly' : ''
-def reportMirrorbits-mirrors-list = env.BRANCH_IS_PRIMARY ? 'mirrorbits-mirrors-list.txt' : "mirrorbits-mirrors-list-${env.BRANCH_NAME}.txt"
+def reportMirrorbitsMirrorsList = env.BRANCH_IS_PRIMARY ? 'mirrorbits-mirrors-list.txt' : "mirrorbits-mirrors-list-${env.BRANCH_NAME}.txt"
 
 pipeline {
   triggers {
@@ -21,8 +21,8 @@ pipeline {
     stage('Generate Mirrorbits Mirrors List') {
       steps {
         dir('jenkins-infra-data') {
-          sh 'bash ./mirrorbits-mirrors-list.sh > "${reportMirrorbits-mirrors-list}"'
-          archiveArtifacts reportMirrorbits-mirrors-list
+          sh 'bash ./mirrorbits-mirrors-list.sh > "${reportMirrorbitsMirrorsList}"'
+          archiveArtifacts reportMirrorbitsMirrorsList
         }
       }
     }
@@ -32,7 +32,7 @@ pipeline {
       }
       steps {
         dir('jenkins-infra-data') {
-          publishReports ([reportMirrorbits-mirrors-list])
+          publishReports ([reportMirrorbitsMirrorsList])
         }
       }
     }
