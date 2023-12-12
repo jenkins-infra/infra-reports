@@ -108,6 +108,6 @@ Consumed by nothing yet
 WARNING need the docker image `allinone` (jenkinsciinfra/jenkins-agent-ubuntu-22.04) to have the correct tools (xq)
 
 ```bash
-cd mirrorbits-mirrors-list/
+cd jenkins-infra-data/
 bash ./mirrorbits-mirrors-list.sh
 ```

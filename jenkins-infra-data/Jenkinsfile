@@ -1,5 +1,5 @@
 def cronExpr = env.BRANCH_IS_PRIMARY ? '@hourly' : ''
-def reportName = env.BRANCH_IS_PRIMARY ? 'mirrorbits-mirrors-list.txt' : "mirrorbits-mirrors-list-${env.BRANCH_NAME}.txt"
+def reportMirrorbits-mirrors-list = env.BRANCH_IS_PRIMARY ? 'mirrorbits-mirrors-list.txt' : "mirrorbits-mirrors-list-${env.BRANCH_NAME}.txt"
 
 pipeline {
   triggers {
@@ -8,7 +8,7 @@ pipeline {
   options {
     // This pipeline takes 1-2 minutes max to execute
     timeout(time: 10, unit: 'MINUTES')
-    lock(resource: 'mirrorbits-mirrors-list', inversePrecedence: true)
+    lock(resource: 'jenkins-infra-data', inversePrecedence: true)
     buildDiscarder logRotator(daysToKeepStr: '90')
   }
   agent {
@@ -20,19 +20,19 @@ pipeline {
     }
     stage('Generate Mirrorbits Mirrors List') {
       steps {
-        dir('mirrorbits-mirrors-list') {
-          sh 'bash ./mirrorbits-mirrors-list.sh > "${REPORT_NAME}"'
-          archiveArtifacts reportName
+        dir('jenkins-infra-data') {
+          sh 'bash ./mirrorbits-mirrors-list.sh > "${reportMirrorbits-mirrors-list}"'
+          archiveArtifacts reportMirrorbits-mirrors-list
         }
       }
     }
-    stage('Publish Mirrorbits Mirrors List') {
+    stage('Publish reports') {
       when {
         expression { env.BRANCH_IS_PRIMARY }
       }
       steps {
-        dir('mirrorbits-mirrors-list') {
-          publishReports ([reportName])
+        dir('jenkins-infra-data') {
+          publishReports ([reportMirrorbits-mirrors-list])
         }
       }
     }
