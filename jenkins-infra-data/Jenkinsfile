@@ -15,12 +15,10 @@ pipeline {
     label 'jnlp-linux-arm64'
   }
   stages {
-    stage('Install xq temporary step') {
-      sh 'curl -sSL https://raw.githubusercontent.com/sibprogrammer/xq/v1.2.3/scripts/install.sh | sudo bash'
-    }
     stage('Generate Mirrorbits Mirrors List') {
       steps {
         dir('jenkins-infra-data') {
+          sh 'curl -sSL https://raw.githubusercontent.com/sibprogrammer/xq/v1.2.3/scripts/install.sh | sudo bash'
           sh 'bash ./mirrorbits-mirrors-list.sh > "${reportMirrorbitsMirrorsList}"'
           archiveArtifacts reportMirrorbitsMirrorsList
         }
