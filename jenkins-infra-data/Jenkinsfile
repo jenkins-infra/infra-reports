@@ -16,7 +16,7 @@ pipeline {
   }
   stages {
     stage('Install xq temporary step') {
-      curl -sSL https://raw.githubusercontent.com/sibprogrammer/xq/v1.2.3/scripts/install.sh | sudo bash
+      sh 'curl -sSL https://raw.githubusercontent.com/sibprogrammer/xq/v1.2.3/scripts/install.sh | sudo bash'
     }
     stage('Generate Mirrorbits Mirrors List') {
       steps {
