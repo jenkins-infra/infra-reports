@@ -24,9 +24,8 @@ pipeline {
         dir('jenkins-infra-data') {
           // temporarily installed here until it is provided in the agent directly
           sh 'curl -sSL https://github.com/sibprogrammer/xq/releases/download/v1.2.3/xq_1.2.3_linux_armv7.tar.gz | tar -xz xq'
-          // sh 'bash ./mirrorbits-mirrors-list.sh > "${REPORT_NAME}"'
-          sh 'bash ./mirrorbits-mirrors-list.sh'
-          // archiveArtifacts reportMirrorbitsMirrorsList
+          sh 'bash ./mirrorbits-mirrors-list.sh > "${REPORT_NAME}"'
+          archiveArtifacts reportMirrorbitsMirrorsList
         }
       }
     }
