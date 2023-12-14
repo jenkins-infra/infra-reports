@@ -19,6 +19,7 @@ pipeline {
       steps {
         dir('jenkins-infra-data') {
           sh 'curl -sSL https://github.com/sibprogrammer/xq/releases/download/v1.2.3/xq_1.2.3_linux_armv7.tar.gz | tar -xz'
+          sh 'ls -la'
           sh 'bash ./mirrorbits-mirrors-list.sh > "${reportMirrorbitsMirrorsList}"'
           archiveArtifacts reportMirrorbitsMirrorsList
         }
