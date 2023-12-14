@@ -18,7 +18,7 @@ pipeline {
     stage('Generate Mirrorbits Mirrors List') {
       steps {
         dir('jenkins-infra-data') {
-          sh 'curl -sSL https://raw.githubusercontent.com/sibprogrammer/xq/v1.2.3/scripts/install.sh | sudo bash'
+          sh 'curl -sSL https://raw.githubusercontent.com/sibprogrammer/xq/v1.2.3/scripts/install.sh | bash'
           sh 'bash ./mirrorbits-mirrors-list.sh > "${reportMirrorbitsMirrorsList}"'
           archiveArtifacts reportMirrorbitsMirrorsList
         }
