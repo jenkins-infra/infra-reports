@@ -11,31 +11,28 @@ pipeline {
     lock(resource: 'infra-reports-artifactory-users', inversePrecedence: true)
     buildDiscarder logRotator(daysToKeepStr: '90')
   }
-  agent {
-    kubernetes {
-      yamlFile 'JenkinsAgentPodTemplate.yaml'
-    }
-  }
-  stages {
-    stage('Generate Artifactory Users Report') {
-      environment {
-        ARTIFACTORY_AUTH = credentials('artifactoryAdmin')
-        REPORT_NAME = "${reportName}"
-      }
-      steps {
-        dir('artifactory-users-report') {
-          sh 'bash ./user-report.sh > "${REPORT_NAME}"'
-          archiveArtifacts reportName
+  node ('jnlp-linux-arm64') {
+    stages {
+      stage('Generate Artifactory Users Report') {
+        environment {
+          ARTIFACTORY_AUTH = credentials('artifactoryAdmin')
+          REPORT_NAME = "${reportName}"
+        }
+        steps {
+          dir('artifactory-users-report') {
+            sh 'bash ./user-report.sh > "${REPORT_NAME}"'
+            archiveArtifacts reportName
+          }
         }
       }
-    }
-    stage('Publish Artifactory Users Report') {
-      when {
-        expression { env.BRANCH_IS_PRIMARY }
-      }
-      steps {
-        dir('artifactory-users-report') {
-          publishReports ([reportName])
+      stage('Publish Artifactory Users Report') {
+        when {
+          expression { env.BRANCH_IS_PRIMARY }
+        }
+        steps {
+          dir('artifactory-users-report') {
+            publishReports ([reportName])
+          }
         }
       }
     }
