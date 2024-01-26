@@ -25,7 +25,7 @@ pipeline {
       }
       steps {
         dir('jenkins-infra-data') {
-          sh "./get-jenkins-io_mirrors.sh > ${reportName}"
+          sh './get-jenkins-io_mirrors.sh > "${REPORT_NAME}"'
           archiveArtifacts reportName
         }
       }
