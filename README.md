@@ -99,15 +99,15 @@ node index.js > index.html
 
 ## Mirrorbits Mirrors List Report
 
-Creates a report listing all the mirrors within Jenkins Download Mirrorbits
+Creates a report listing all Jenkins Infrastructure Mirrorbits mirrors.
 
-Consumed by nothing yet
+Not consumed yet.
 
 ### Usage
 
-WARNING need the docker image `allinone` (jenkinsciinfra/jenkins-agent-ubuntu-22.04) to have the correct tools (xq)
+This requires curl(1), jq(1) and xq(1) command line tools.
 
 ```bash
 cd jenkins-infra-data/
-bash ./mirrorbits-mirrors-list.sh
+./mirrorbits-mirrors-list.sh
 ```
