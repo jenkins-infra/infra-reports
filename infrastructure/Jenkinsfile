@@ -1,0 +1,41 @@
+def cronExpr = env.BRANCH_IS_PRIMARY ? '@hourly' : ''
+def getJenkinsIoMirrorsReport = env.BRANCH_IS_PRIMARY ? 'get-jenkins-io_mirrors.json' : "get-jenkins-io_mirrors_PR${env.CHANGE_ID}.json"
+def version = 'v1'
+
+pipeline {
+  triggers {
+    cron(cronExpr)
+  }
+  options {
+    // This pipeline takes 1-2 minutes max to execute
+    timeout(time: 10, unit: 'MINUTES')
+    lock(resource: 'infrastructure', inversePrecedence: true)
+    buildDiscarder logRotator(daysToKeepStr: '90')
+  }
+  agent {
+    label 'jnlp-linux-arm64'
+  }
+  stages {
+    stage('Generate get.jenkins.io mirrors report') {
+      environment {
+        VERSION = version
+      }
+      steps {
+        dir('infrastructure') {
+          sh "./get-jenkins-io_mirrors.sh > ${getJenkinsIoMirrorsReport}"
+          archiveArtifacts getJenkinsIoMirrorsReport
+        }
+      }
+    }
+    stage('Publish get.jenkins.io mirrors report') {
+      when {
+        expression { env.BRANCH_IS_PRIMARY }
+      }
+      steps {
+        dir('infrastructure') {
+          publishReports (["infrastructure/${version}/${getJenkinsIoMirrorsReport}"])
+        }
+      }
+    }
+  }
+}
