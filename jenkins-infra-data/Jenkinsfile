@@ -16,14 +16,9 @@ pipeline {
   }
   stages {
     stage('Generate Mirrorbits Mirrors List') {
-      environment {
-        REPORT_NAME = "${reportMirrorbitsMirrorsList}"
-        PATH = "${env.PATH}:./"
-      }
       steps {
         dir('jenkins-infra-data') {
-          sh './mirrorbits-mirrors-list.sh > "${REPORT_NAME}"'
-          archiveArtifacts reportMirrorbitsMirrorsList
+          sh "./mirrorbits-mirrors-list.sh > ${reportMirrorbitsMirrorsList}"
         }
       }
     }
