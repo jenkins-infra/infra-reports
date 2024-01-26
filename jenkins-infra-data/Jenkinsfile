@@ -1,6 +1,7 @@
 def cronExpr = env.BRANCH_IS_PRIMARY ? '@hourly' : ''
-def getJenkinsIoMirrorsReport = env.BRANCH_IS_PRIMARY ? 'index.json' : "index_PR${env.CHANGE_ID}.json"
+def reportName = env.BRANCH_IS_PRIMARY ? 'index.json' : "index_PR${env.CHANGE_ID}.json"
 def version = 'v1'
+def reportPath = "infrastructure/${version}/${reportName}"
 
 pipeline {
   triggers {
@@ -19,11 +20,13 @@ pipeline {
     stage('Generate get.jenkins.io mirrors report') {
       environment {
         VERSION = "${version}"
+        REPORT_NAME = "${reportName}"
+        REPORT_PATH = "${reportPath}"
       }
       steps {
         dir('jenkins-infra-data') {
-          sh "./get-jenkins-io_mirrors.sh > ${getJenkinsIoMirrorsReport}"
-          archiveArtifacts getJenkinsIoMirrorsReport
+          sh "./get-jenkins-io_mirrors.sh > ${reportName}"
+          archiveArtifacts reportName
         }
       }
     }
@@ -33,7 +36,7 @@ pipeline {
       }
       steps {
         dir('jenkins-infra-data') {
-          publishReports (["infrastructure/${version}/${getJenkinsIoMirrorsReport}"])
+          publishReports (["${reportPath}"])
         }
       }
     }

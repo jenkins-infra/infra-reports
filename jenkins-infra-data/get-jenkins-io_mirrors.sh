@@ -7,6 +7,11 @@ command -v "jq" >/dev/null || { echo "[ERROR] no 'jq' command found."; exit 1; }
 command -v "xq" >/dev/null || { echo "[ERROR] no 'xq' command found."; exit 1; }
 
 version=${VERSION:-v1}
+reportPath=${REPORT_PATH:-infrastructure/v1/index.json}
+
+# Retrieve existing report if it exists, empty oject otherwise
+reportUrl="https://reports.jenkins.io/${reportPath}"
+existing=$(curl --silent --fail --max-redirs 2 --request GET --location "${reportUrl}" || echo '{}')
 
 # Redirect to get.jenkins.io URL including last Jenkins version
 source="https://updates.jenkins.io/latest/jenkins.war?mirrorlist"
@@ -41,4 +46,9 @@ json=$(echo "${json}" | jq \
         --arg version "${version}" \
         '. += {"lastUpdate": $lastUpdate, "version": $version}')
 
-echo "${json}"
+# Updating the "get.jenkins.io" section of the existing report
+result=$(echo "${existing}" | jq \
+        --argjson json "${json}" \
+        '."get.jenkins.io".mirrors |=  $json')
+
+echo "${result}"
