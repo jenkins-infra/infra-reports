@@ -1,5 +1,5 @@
 def cronExpr = env.BRANCH_IS_PRIMARY ? '@hourly' : ''
-def reportMirrorbitsMirrorsList = env.BRANCH_IS_PRIMARY ? 'mirrorbits-mirrors-list.txt' : "mirrorbits-mirrors-list-${env.BRANCH_NAME}.txt"
+def reportMirrorbitsMirrorsList = env.BRANCH_IS_PRIMARY ? 'mirrorbits-mirrors-list.json' : "mirrorbits-mirrors-list-${env.BRANCH_NAME}.json"
 
 pipeline {
   triggers {
