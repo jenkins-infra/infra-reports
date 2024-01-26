@@ -9,7 +9,7 @@ pipeline {
   options {
     // This pipeline takes 1-2 minutes max to execute
     timeout(time: 10, unit: 'MINUTES')
-    lock(resource: 'infrastructure', inversePrecedence: true)
+    lock(resource: 'jenkins-infra-data', inversePrecedence: true)
     buildDiscarder logRotator(daysToKeepStr: '90')
   }
   agent {
@@ -21,7 +21,7 @@ pipeline {
         VERSION = version
       }
       steps {
-        dir('infrastructure') {
+        dir('jenkins-infra-data') {
           sh "./get-jenkins-io_mirrors.sh > ${getJenkinsIoMirrorsReport}"
           archiveArtifacts getJenkinsIoMirrorsReport
         }
@@ -32,7 +32,7 @@ pipeline {
         expression { env.BRANCH_IS_PRIMARY }
       }
       steps {
-        dir('infrastructure') {
+        dir('jenkins-infra-data') {
           publishReports (["infrastructure/${version}/${getJenkinsIoMirrorsReport}"])
         }
       }
