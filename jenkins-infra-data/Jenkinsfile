@@ -1,5 +1,5 @@
 def cronExpr = env.BRANCH_IS_PRIMARY ? '@hourly' : ''
-def getJenkinsIoMirrorsReport = env.BRANCH_IS_PRIMARY ? 'get-jenkins-io_mirrors.json' : "get-jenkins-io_mirrors_PR${env.CHANGE_ID}.json"
+def getJenkinsIoMirrorsReport = env.BRANCH_IS_PRIMARY ? 'index.json' : "index_PR${env.CHANGE_ID}.json"
 def version = 'v1'
 
 pipeline {
