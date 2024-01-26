@@ -97,9 +97,9 @@ npm install
 node index.js > index.html
 ```
 
-## Mirrorbits Mirrors List Report
+## Infrastructure > get.jenkins.io mirrors report
 
-Creates a report listing all Jenkins Infrastructure Mirrorbits mirrors.
+Creates a report listing all get.jenkins.io mirrors.
 
 Not consumed yet.
 
@@ -109,5 +109,5 @@ This requires curl(1), jq(1) and xq(1) command line tools.
 
 ```bash
 cd jenkins-infra-data/
-./mirrorbits-mirrors-list.sh
+./get-jenkins-io_mirrors.sh
 ```
