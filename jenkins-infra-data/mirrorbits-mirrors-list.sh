@@ -6,6 +6,8 @@ set -o errexit
 command -v "jq" >/dev/null || { echo "[ERROR] no 'jq' command found."; exit 1; }
 command -v "xq" >/dev/null || { echo "[ERROR] no 'xq' command found."; exit 1; }
 
+apiVersion="0.1.0"
+
 source="https://updates.jenkins.io/latest/jenkins.war?mirrorlist"
 mirrorRowXPath="//table/tbody/tr"
 
@@ -36,7 +38,7 @@ while read -r line; do
    continents+=("${line}")
 done <<< "$(echo "${mirrorRows}" | xq --xpath "${continentXPath}" || true)"
 
-json='{"mirrors": []}'
+json='{"mirrors": {"list": []}}'
 for ((i=0; i<${#names[@]}; i++)); do
     json=$(echo "${json}" | jq \
         --arg rank "${i}" \
@@ -44,6 +46,13 @@ for ((i=0; i<${#names[@]}; i++)); do
         --arg url "${urls[i]}" \
         --arg country "${countries[i]}" \
         --arg continent "${continents[i]}" \
-        '.mirrors |= . + [{"rank": $rank, "name": $name, "url": $url, "country": $country, "continent": $continent}]')
+        '.mirrors.list |= . + [{"rank": $rank, "name": $name, "url": $url, "country": $country, "continent": $continent}]')
 done
+
+# Add last update date and API current version
+json=$(echo "${json}" | jq \
+        --arg lastUpdate "$(date -u +"%Y-%m-%dT%H:%M:%SZ")" \
+        --arg apiVersion "${apiVersion}" \
+        '.mirrors += {"lastUpdate": $lastUpdate, "apiVersion": $apiVersion}')
+
 echo "${json}"
