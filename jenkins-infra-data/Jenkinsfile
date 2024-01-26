@@ -18,7 +18,7 @@ pipeline {
   stages {
     stage('Generate get.jenkins.io mirrors report') {
       environment {
-        VERSION = version
+        VERSION = "${version}"
       }
       steps {
         dir('jenkins-infra-data') {
