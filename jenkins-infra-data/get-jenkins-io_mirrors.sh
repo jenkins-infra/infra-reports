@@ -30,15 +30,17 @@ readarray -t continents <<< "$(echo "${mirrorRows}" | xq --xpath "${continentXPa
 json='{"mirrors": []}'
 for ((i=0; i<${#names[@]}; i++)); do
     hostname=$(echo "${urls[i]}" | cut -d'/' -f3 | cut -d':' -f1)
-    # As dig(1) can returns CNAME values, we need to filter IPs from its result(s)
-    ip=$(dig +short "${hostname}" | jq --raw-input --slurp 'split("\n") | map(select(test("\\b(?:\\d{1,3}\\.){3}\\d{1,3}\\b")))')
+    # As dig(1) can returns CNAME values, we need to filter IPs from its result(s) (those not finishing by a ".")
+    ipv4=$(dig +short "${hostname}" A | jq --raw-input --slurp 'split("\n") | map(select(test("\\.$") | not)) | map(select(length > 0))')
+    ipv6=$(dig +short "${hostname}" AAAA | jq --raw-input --slurp 'split("\n") | map(select(test("\\.$") | not)) | map(select(length > 0))')
     json=$(echo "${json}" | jq \
         --arg name "${names[i]}" \
         --arg url "${urls[i]}" \
-        --argjson ip "${ip}" \
+        --argjson ipv4 "${ipv4}" \
+        --argjson ipv6 "${ipv6}" \
         --arg country "${countries[i]}" \
         --arg continent "${continents[i]}" \
-        '.mirrors |= . + [{"name": $name, "url": $url, "ip": $ip, "country": $country, "continent": $continent}]')
+        '.mirrors |= . + [{"name": $name, "url": $url, "ipv4": $ipv4, "ipv6": $ipv6, "country": $country, "continent": $continent}]')
 done
 
 # Add current date and API version
