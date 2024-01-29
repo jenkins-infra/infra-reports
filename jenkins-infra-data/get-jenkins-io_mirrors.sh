@@ -42,7 +42,7 @@ json=$(echo "${json}" | jq \
         --arg version "${version}" \
         '. += {"lastUpdate": $lastUpdate, "version": $version}')
 
-# Retrieve existing report if it exists, empty oject otherwise
+# Retrieve existing report if it exists, empty object otherwise
 reportUrl="https://reports.jenkins.io/${reportPath}"
 existing=$(curl --silent --fail --max-redirs 2 --request GET --location "${reportUrl}" || echo '{}')
 
