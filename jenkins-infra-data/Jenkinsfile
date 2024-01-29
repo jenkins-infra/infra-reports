@@ -20,11 +20,23 @@ pipeline {
     stage('Generate Jenkins Infrastructure Public Data report') {
       environment {
         VERSION = "${version}"
+        REPORT_NAME = "${reportName}"
         REPORT_PATH = "${reportPath}"
       }
       steps {
         dir('jenkins-infra-data') {
-          sh "./get-jenkins-io_mirrors.sh > ${reportName}"
+          sh '''
+          # Retrieve existing report if it exists, empty object otherwise
+          curl --silent --fail --max-redirs 2 --request GET --location "https://reports.jenkins.io/${REPORT_PATH}" || echo '{}' > "${REPORT_NAME}"
+
+          # Execute all bash scripts from ./jenkins-infra/data folder
+          for script in ./*.sh; do
+            if [ -f "$script" ]; then
+                echo "= Processing script: ${script}"
+                bash ${script} > "${REPORT_NAME}"
+            fi
+          done
+          '''
           archiveArtifacts reportName
         }
       }
