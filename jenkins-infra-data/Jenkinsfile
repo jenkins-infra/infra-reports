@@ -29,7 +29,7 @@ pipeline {
           # Retrieve existing report if it exists, empty object otherwise
           curl --silent --fail --max-redirs 2 --request GET --location "https://reports.jenkins.io/${REPORT_PATH}" || echo '{}' > "${REPORT_NAME}"
 
-          # Execute bash script from ./jenkins-infra/data folder
+          # Update the report
           ./get-jenkins-io_mirrors.sh > "${REPORT_NAME}"
           '''
           archiveArtifacts reportName
