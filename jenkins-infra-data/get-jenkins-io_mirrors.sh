@@ -26,14 +26,18 @@ readarray -t urls <<< "$(echo "${mirrorRows}" | xq --xpath "${urlXPath}" || true
 readarray -t countries <<< "$(echo "${mirrorRows}" | xq --xpath "${countryXPath}" || true)"
 readarray -t continents <<< "$(echo "${mirrorRows}" | xq --xpath "${continentXPath}" || true)"
 
-json='{"get.jenkins.io": {"mirrors": []}}'
+json='{"mirrors": []}'
 for ((i=0; i<${#names[@]}; i++)); do
+    hostname=$(echo "${urls[i]}" | cut -d'/' -f3 | cut -d':' -f1)
+    # As dig can returns CNAME values, we need to filter IPs from its result(s)
+    ip=$(dig +short "${hostname}" | jq -Rs 'split("\n") | map(select(test("\\b(?:\\d{1,3}\\.){3}\\d{1,3}\\b")))')
     json=$(echo "${json}" | jq \
         --arg name "${names[i]}" \
         --arg url "${urls[i]}" \
+        --argjson ip "${ip}" \
         --arg country "${countries[i]}" \
         --arg continent "${continents[i]}" \
-        '."get.jenkins.io".mirrors |= . + [{"name": $name, "url": $url, "country": $country, "continent": $continent}]')
+        '.mirrors |= . + [{"name": $name, "url": $url, "ip": $ip, "country": $country, "continent": $continent}]')
 done
 
 # Add current date and API version
@@ -49,6 +53,6 @@ existing=$(curl --silent --fail --max-redirs 2 --request GET --location "${repor
 # Update the "get.jenkins.io" section of the existing report before returning it
 result=$(echo "${existing}" | jq \
         --argjson json "${json}" \
-        '."get.jenkins.io".mirrors |=  $json')
+        '."get.jenkins.io" |=  $json')
 
 echo "${result}"

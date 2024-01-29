@@ -17,7 +17,7 @@ pipeline {
     label 'jnlp-linux-arm64'
   }
   stages {
-    stage('Generate get.jenkins.io mirrors report') {
+    stage('Generate Jenkins Infrastructure Public Data report') {
       environment {
         VERSION = "${version}"
         REPORT_PATH = "${reportPath}"
@@ -29,7 +29,7 @@ pipeline {
         }
       }
     }
-    stage('Publish get.jenkins.io mirrors report') {
+    stage('Publish Jenkins Infrastructure Public Data report') {
       when {
         expression { env.BRANCH_IS_PRIMARY }
       }
