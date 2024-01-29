@@ -5,6 +5,7 @@ set -o errexit
 
 command -v "jq" >/dev/null || { echo "[ERROR] no 'jq' command found."; exit 1; }
 command -v "xq" >/dev/null || { echo "[ERROR] no 'xq' command found."; exit 1; }
+command -v "dig" >/dev/null || { echo "[ERROR] no 'dig' command found."; exit 1; }
 
 version=${VERSION:-v1}
 reportName=${REPORT_NAME:-index.json}
