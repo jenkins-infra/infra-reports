@@ -9,7 +9,8 @@ command -v "xq" >/dev/null || { echo "[ERROR] no 'xq' command found."; exit 1; }
 version=${VERSION:-v1}
 reportPath=${REPORT_PATH:-infrastructure/v1/index.json}
 
-# Redirect to get.jenkins.io URL including last Jenkins version
+# Note: this URL redirects to get.jenkins.io URL including last Jenkins version
+# Ex: https://get.jenkins.io/war/2.442/jenkins.war?mirrorlist
 source="https://updates.jenkins.io/latest/jenkins.war?mirrorlist"
 lastUpdate=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 
@@ -29,8 +30,8 @@ readarray -t continents <<< "$(echo "${mirrorRows}" | xq --xpath "${continentXPa
 json='{"mirrors": []}'
 for ((i=0; i<${#names[@]}; i++)); do
     hostname=$(echo "${urls[i]}" | cut -d'/' -f3 | cut -d':' -f1)
-    # As dig can returns CNAME values, we need to filter IPs from its result(s)
-    ip=$(dig +short "${hostname}" | jq -Rs 'split("\n") | map(select(test("\\b(?:\\d{1,3}\\.){3}\\d{1,3}\\b")))')
+    # As dig(1) can returns CNAME values, we need to filter IPs from its result(s)
+    ip=$(dig +short "${hostname}" | jq --raw-input --slurp 'split("\n") | map(select(test("\\b(?:\\d{1,3}\\.){3}\\d{1,3}\\b")))')
     json=$(echo "${json}" | jq \
         --arg name "${names[i]}" \
         --arg url "${urls[i]}" \
