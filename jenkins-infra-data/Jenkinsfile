@@ -31,7 +31,7 @@ pipeline {
           echo $existing > "${REPORT_NAME}"
 
           # Update the report
-          ./get-jenkins-io_mirrors.sh > "${REPORT_NAME}"
+          ./get-jenkins-io_mirrors.sh
           '''
           archiveArtifacts reportName
         }

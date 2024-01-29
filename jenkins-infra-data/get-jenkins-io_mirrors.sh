@@ -55,4 +55,4 @@ result=$(cat "${reportName}" | jq \
         --argjson json "${json}" \
         '."get.jenkins.io" |=  $json')
 
-echo "${result}"
+echo "${result}" > "${reportName}"
