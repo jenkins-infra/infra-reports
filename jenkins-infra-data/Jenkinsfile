@@ -1,0 +1,51 @@
+def cronExpr = env.BRANCH_IS_PRIMARY ? '@hourly' : ''
+def reportName = env.BRANCH_IS_PRIMARY ? 'index.json' : "index_PR${env.CHANGE_ID}.json"
+def version = 'v1'
+def reportPath = "infrastructure/${version}/${reportName}"
+
+pipeline {
+  triggers {
+    cron(cronExpr)
+  }
+  options {
+    // This pipeline takes 1-2 minutes max to execute
+    timeout(time: 10, unit: 'MINUTES')
+    lock(resource: 'jenkins-infra-data', inversePrecedence: true)
+    buildDiscarder logRotator(daysToKeepStr: '90')
+  }
+  agent {
+    label 'jnlp-linux-arm64'
+  }
+  stages {
+    stage('Generate Jenkins Infrastructure Public Data report') {
+      environment {
+        VERSION = "${version}"
+        REPORT_NAME = "${reportName}"
+        REPORT_PATH = "${reportPath}"
+      }
+      steps {
+        dir('jenkins-infra-data') {
+          sh '''
+          # Retrieve existing report if it exists, empty object otherwise
+          existing=$(curl --silent --fail --max-redirs 2 --request GET --location "https://reports.jenkins.io/${REPORT_PATH}" || echo '{}')
+          echo $existing > "${REPORT_NAME}"
+
+          # Update the report
+          ./get-jenkins-io_mirrors.sh
+          '''
+          archiveArtifacts reportName
+        }
+      }
+    }
+    stage('Publish Jenkins Infrastructure Public Data report') {
+      when {
+        expression { env.BRANCH_IS_PRIMARY }
+      }
+      steps {
+        dir('jenkins-infra-data') {
+          publishReports (["${reportPath}"])
+        }
+      }
+    }
+  }
+}

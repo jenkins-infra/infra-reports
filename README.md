@@ -96,3 +96,18 @@ cd plugin-migration
 npm install
 node index.js > index.html
 ```
+
+## Infrastructure > get.jenkins.io mirrors report
+
+Creates a report listing all get.jenkins.io mirrors.
+
+Not consumed yet.
+
+### Usage
+
+This requires curl(1), jq(1) and xq(1) command line tools.
+
+```bash
+cd jenkins-infra-data/
+./get-jenkins-io_mirrors.sh
+```
