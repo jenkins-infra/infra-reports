@@ -2,6 +2,7 @@
 
 set -o nounset
 set -o errexit
+set -x
 
 command -v "jq" >/dev/null || { echo "[ERROR] no 'jq' command found."; exit 1; }
 command -v "xq" >/dev/null || { echo "[ERROR] no 'xq' command found."; exit 1; }

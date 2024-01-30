@@ -1,7 +1,7 @@
 def cronExpr = env.BRANCH_IS_PRIMARY ? '@hourly' : ''
-def reportName = env.BRANCH_IS_PRIMARY ? 'index.json' : "index_PR${env.CHANGE_ID}.json"
+def reportName = 'index.json'
 def version = 'v1'
-def reportPath = "infrastructure/${version}/${reportName}"
+def reportFolder = "infrastructure/${version}"
 
 pipeline {
   triggers {
@@ -21,17 +21,22 @@ pipeline {
       environment {
         VERSION = "${version}"
         REPORT_NAME = "${reportName}"
-        REPORT_PATH = "${reportPath}"
+        REPORT_FOLDER = "${reportFolder}"
       }
       steps {
         dir('jenkins-infra-data') {
           sh '''
+          set +x
           # Retrieve existing report if it exists, empty object otherwise
-          existing=$(curl --silent --fail --max-redirs 2 --request GET --location "https://reports.jenkins.io/${REPORT_PATH}" || echo '{}')
-          echo $existing > "${REPORT_NAME}"
+          existing=$(curl --silent --fail --max-redirs 2 --request GET --location "https://reports.jenkins.io/${REPORT_FOLDER}/${REPORT_NAME}" || echo '{}')
+          echo "$existing" > "${REPORT_NAME}"
 
           # Update the report
           ./get-jenkins-io_mirrors.sh
+
+          # Copy the report to the desired folder for getting an apppropriate report URL
+          mkdir -p "${REPORT_FOLDER}"
+          cp "${REPORT_NAME}" "${REPORT_FOLDER}"
           '''
           archiveArtifacts reportName
         }
@@ -43,7 +48,7 @@ pipeline {
       }
       steps {
         dir('jenkins-infra-data') {
-          publishReports (["${reportPath}"])
+          publishReports (["${reportFolder}/${reportName}"])
         }
       }
     }
