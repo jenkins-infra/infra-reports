@@ -24,6 +24,11 @@ continentXPath="//td[5]"
 
 mirrorRows=$(curl --silent --max-redirs 2 --request GET --location "${source}" | xq --node --xpath "${mirrorRowXPath}")
 
+if [[ -z ${mirrorRows} ]]; then
+    echo "Error: no mirror returned from ${source}"
+    exit 1
+fi
+
 readarray -t names <<< "$(echo "${mirrorRows}" | xq --xpath "${nameXPath}" || true)"
 readarray -t urls <<< "$(echo "${mirrorRows}" | xq --xpath "${urlXPath}" || true)"
 readarray -t countries <<< "$(echo "${mirrorRows}" | xq --xpath "${countryXPath}" || true)"
