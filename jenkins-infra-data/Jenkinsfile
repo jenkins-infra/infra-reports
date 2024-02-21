@@ -40,7 +40,7 @@ pipeline {
           mkdir -p "${REPORT_FOLDER}"
           cp "${REPORT_NAME}" "${REPORT_FOLDER}"
           '''
-          archiveArtifacts artifacts: "${htmlRows}, ${reportName}"
+          archiveArtifacts artifacts: "${sourceHTML}, ${reportName}"
         }
       }
     }
