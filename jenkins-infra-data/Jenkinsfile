@@ -1,6 +1,6 @@
 def cronExpr = env.BRANCH_IS_PRIMARY ? '@hourly' : ''
 def reportName = 'index.json'
-def htmlRows = 'rows.html'
+def sourceHTML = 'source.html'
 def version = 'v2'
 def reportFolder = "infrastructure/${version}"
 
@@ -22,7 +22,7 @@ pipeline {
       environment {
         VERSION = "${version}"
         REPORT_NAME = "${reportName}"
-        HTML_ROWS = "${htmlRows}"
+        SOURCE_HTML = "${sourceHTML}"
         REPORT_FOLDER = "${reportFolder}"
       }
       steps {

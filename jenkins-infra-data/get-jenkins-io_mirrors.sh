@@ -10,7 +10,7 @@ command -v "dig" >/dev/null || { echo "[ERROR] no 'dig' command found."; exit 1;
 
 version=${VERSION:-v1}
 reportName=${REPORT_NAME:-index.json}
-htmlRows=${HTML_ROWS:-rows.html}
+sourceHTML=${SOURCE_HTML:-source.html}
 source="https://get.jenkins.io/index.html?mirrorstats"
 lastUpdate=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 
@@ -19,13 +19,12 @@ mirrorRowXPath="//table/tbody/tr"
 cellXPath="//td[@rowspan=2]"
 fallback="archives.jenkins.io"
 
-# Retrieving all rows of the table containing all mirrors
-mirrorRows=$(curl --silent --max-redirs 2 --request GET --location "${source}" \
-    | xq --node --query "${mirrorTableQuery}" \
-    | xq --node --xpath "${mirrorRowXPath}")
+# Retrieve the source HTML into $sourceHTML file
+curl --silent --max-redirs 2 --request GET --location "${source}" --output "${sourceHTML}"
 
-# Saving extracted HTML content for debuging purpose
-echo "${mirrorRows}" > "${htmlRows}"
+# Retrieving all rows of the table containing all mirrors
+mirrorRows=$(xq --node --query "${mirrorTableQuery}" < "${sourceHTML}" \
+    | xq --node --xpath "${mirrorRowXPath}")
 
 if [[ -z ${mirrorRows} ]]; then
     echo "Error: no mirror returned from ${source}"
