@@ -23,8 +23,7 @@ fallback="archives.jenkins.io"
 curl --silent --max-redirs 2 --request GET --location "${source}" --output "${sourceHTML}"
 
 # Retrieving all rows of the table containing all mirrors
-mirrorRows=$(xq --node --query "${mirrorTableQuery}" < "${sourceHTML}" \
-    | xq --node --xpath "${mirrorRowXPath}")
+mirrorRows=$(xq --node --query "${mirrorTableQuery}" "${sourceHTML}" | xq --node --xpath "${mirrorRowXPath}")
 
 if [[ -z ${mirrorRows} ]]; then
     echo "Error: no mirror returned from ${source}"
@@ -59,6 +58,6 @@ json=$(echo "${json}" | jq \
         '. += {"lastUpdate": $lastUpdate, "version": $version}')
 
 # Update the "get.jenkins.io" section of the existing report before returning it
-result=$(jq --argjson json "${json}" '."get.jenkins.io" |=  $json' < "${reportName}")
+result=$(jq --argjson json "${json}" '."get.jenkins.io" |=  $json' "${reportName}")
 
 echo "${result}" > "${reportName}"
