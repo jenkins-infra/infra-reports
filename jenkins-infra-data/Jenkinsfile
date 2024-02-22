@@ -1,6 +1,7 @@
 def cronExpr = env.BRANCH_IS_PRIMARY ? '@hourly' : ''
 def reportName = 'index.json'
-def version = 'v1'
+def sourceHTML = 'source.html'
+def version = 'v2'
 def reportFolder = "infrastructure/${version}"
 
 pipeline {
@@ -21,6 +22,7 @@ pipeline {
       environment {
         VERSION = "${version}"
         REPORT_NAME = "${reportName}"
+        SOURCE_HTML = "${sourceHTML}"
         REPORT_FOLDER = "${reportFolder}"
       }
       steps {
@@ -38,7 +40,7 @@ pipeline {
           mkdir -p "${REPORT_FOLDER}"
           cp "${REPORT_NAME}" "${REPORT_FOLDER}"
           '''
-          archiveArtifacts reportName
+          archiveArtifacts artifacts: "${sourceHTML}, ${reportName}"
         }
       }
     }
