@@ -35,10 +35,9 @@ readarray -t hostnames <<< "$(echo "${mirrorRows}" | xq --xpath "${cellXPath}" |
 
 json='{"mirrors": []}'
 for ((i=0; i<${#hostnames[@]}; i++)); do
-    hostname="${hostnames[i]}"
     # As dig(1) can returns CNAME values, we need to filter IPs from its result(s) (those not finishing by a ".")
-    ipv4=$(dig +short "${hostname}" A | jq --raw-input --slurp 'split("\n") | map(select(test("\\.$") | not)) | map(select(length > 0))')
-    ipv6=$(dig +short "${hostname}" AAAA | jq --raw-input --slurp 'split("\n") | map(select(test("\\.$") | not)) | map(select(length > 0))')
+    ipv4=$(dig +short "${hostnames[i]}" A | jq --raw-input --slurp 'split("\n") | map(select(test("\\.$") | not)) | map(select(length > 0))')
+    ipv6=$(dig +short "${hostnames[i]}" AAAA | jq --raw-input --slurp 'split("\n") | map(select(test("\\.$") | not)) | map(select(length > 0))')
     json=$(echo "${json}" | jq \
         --arg hostname "${hostnames[i]}" \
         --argjson ipv4 "${ipv4}" \
