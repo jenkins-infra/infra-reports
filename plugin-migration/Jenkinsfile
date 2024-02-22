@@ -16,7 +16,7 @@ pipeline {
     }
   }
   stages {
-    stage('Generate Plugin-Migration Report') {
+    stage('Generate Plugin Documentation Migration Report') {
         environment {
             GITHUB_APP_PRIVATE_KEY_B64 = credentials('githubapp-jenkins-infra-reports-private-key-b64')
             GITHUB_APP_ID = credentials('githubapp-jenkins-infra-reports-app-identifier')
