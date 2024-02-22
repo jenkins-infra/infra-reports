@@ -12,9 +12,7 @@ pipeline {
     buildDiscarder logRotator(daysToKeepStr: '90')
   }
   agent {
-    kubernetes {
-      yamlFile 'JenkinsAgentPodTemplate.yaml'
-    }
+    label 'jnlp-linux-arm64'
   }
   stages {
     stage('Generate GitHub Forks Report') {
