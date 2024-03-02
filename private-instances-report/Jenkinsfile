@@ -1,0 +1,70 @@
+def cronExpr = env.BRANCH_IS_PRIMARY ? 'H/10 * * * *' : ''
+def version = 'v1'
+def reportFolder = "private-instances/${version}"
+
+pipeline {
+  triggers {
+    cron(cronExpr)
+  }
+  options {
+    timeout(time: 10, unit: 'MINUTES')
+    lock(resource: 'private-instances', inversePrecedence: true)
+    buildDiscarder logRotator(daysToKeepStr: '90')
+  }
+  agent none
+  stages {
+    stage('Private Instances report') {
+      matrix {
+        axes {
+          axis {
+            name 'INSTANCE_NAME'
+            values 'trusted.ci.jenkins.io', 'release.ci.jenkins.io', 'infra.ci.jenkins.io'
+          }
+        }
+        agent {
+          label 'jnlp-linux-arm64'
+        }
+        when {
+          // Report trusted.ci.jenkins.io instance only from trusted.ci.jenkins.io
+          anyOf {
+            expression { env.JENKINS_URL.startsWith("https://${INSTANCE_NAME}") }
+            expression { INSTANCE_NAME != 'trusted.ci.jenkins.io' }
+          }
+        }
+        environment {
+          VERSION = "${version}"
+          INSTANCE_TOKEN = credentials("private-instances-report-token-${INSTANCE_NAME}")
+          REPORT_NAME = "${INSTANCE_NAME}.json"
+          REPORT_FOLDER = "${reportFolder}"
+        }
+        stages {
+          stage('Generate report') {
+            steps {
+              dir('private-instances-report') {
+                sh '''
+                # Generate the report
+                ./get-private-instance-jobs-and-queue.sh
+
+                # Copy the report to the desired folder for getting an apppropriate report URL
+                mkdir -p "${REPORT_FOLDER}"
+                cp "${REPORT_NAME}" "${REPORT_FOLDER}"
+                '''
+                archiveArtifacts artifacts: "${REPORT_NAME}"
+              }
+            }
+          }
+          stage('Publish report') {
+            when {
+              expression { env.BRANCH_IS_PRIMARY }
+            }
+            steps {
+              dir('private-instances-report') {
+                publishReports (["${reportFolder}/${REPORT_NAME}"])
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

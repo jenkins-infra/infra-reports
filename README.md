@@ -111,3 +111,20 @@ This requires curl(1), jq(1) and xq(1) command line tools.
 cd jenkins-infra-data/
 ./get-jenkins-io_mirrors.sh
 ```
+
+## Private Instances Report
+
+Creates a report listing all jobs with their last build and the build queue of a private Jenkins instance.
+
+### Usage
+
+You'll need to define the following environment variables to run the script:
+
+- INSTANCE_NAME: The name of the instance, ex "trusted.ci.jenkins.io"
+- INSTANCE_TOKEN: Jenkins username and token separated by `:`, ex: "myuser:mytoken"
+- REPORT_NAME: The filename of the report, ex "trusted.json"
+
+```bash
+cd private-instances-report
+./get-private-instance-jobs-and-queue.sh
+```
