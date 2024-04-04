@@ -1,0 +1,55 @@
+name: Bump NodeJS version in ASDF tools
+
+scms:
+  default:
+    kind: github
+    spec:
+      user: "{{ .github.user }}"
+      email: "{{ .github.email }}"
+      owner: "{{ .github.owner }}"
+      repository: "{{ .github.repository }}"
+      token: "{{ requiredEnv .github.token }}"
+      username: "{{ .github.username }}"
+      branch: "{{ .github.branch }}"
+
+sources:
+  getInfraCIPackerImageVersion:
+    kind: file
+    name: Retrieve the current version of the Packer images used in production on infra.ci.jenkins.io
+    spec:
+      file: https://raw.githubusercontent.com/jenkins-infra/kubernetes-management/main/config/jenkins_infra.ci.jenkins.io.yaml
+      # Prefiltering to avoid verbose output
+      matchpattern: 'galleryImageVersion:\s"(.*)"'
+    transformers:
+      - findsubmatch:
+          pattern: 'galleryImageVersion:\s"(.*)"'
+          captureindex: 1
+  getNodeJSVersionFromPackerImages:
+    kind: yaml
+    name: Get the latest NodeJS version set in packer-images
+    dependson:
+      - getInfraCIPackerImageVersion
+    spec:
+      file: https://raw.githubusercontent.com/jenkins-infra/packer-images/{{ source "getInfraCIPackerImageVersion" }}/provisioning/tools-versions.yml
+      key: $.nodejs_linux_version
+
+targets:
+  updateAsdfToolsVersion:
+    name: Update NodeJS in the ASDF tools version file
+    kind: file
+    disablesourceinput: true
+    spec:
+      file: .tool-versions
+      matchpattern: 'nodejs\s(.*)'
+      replacepattern: 'nodejs {{ source "getNodeJSVersionFromPackerImages" }}'
+    scmid: default
+
+actions:
+  default:
+    kind: github/pullrequest
+    scmid: default
+    spec:
+      title: Bump NodeJS version in ASDF tools to {{ source "getNodeJSVersionFromPackerImages" }}
+      labels:
+        - chore
+        - nodejs
