@@ -44,7 +44,7 @@ curl --location --silent --show-error --remote-name "https://reports.jenkins.io/
 ###
 curl --etag-compare "${ETAGS_FILE}" \
     --etag-save "${ETAGS_FILE}" \
-    --location --silent --show-error "${HEALTH_URL}" \
+    --location --silent --show-error "${PHS_API_URL}" \
     | jq --compact-output '. + { lastUpdate: (now | todate) }' > "${REPORT_FILE}"
 
 mkdir -p "${REPORTS_FOLDER}"

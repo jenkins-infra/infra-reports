@@ -26,7 +26,7 @@ pipeline {
         REPORTS_FOLDER = "${reportsFolder}"
         ETAGS_FILE = "${etagsFile}"
         REPORT_FILE = "${reportFile}"
-        HEALTH_URL = 'https://plugin-health.jenkins.io/api/scores'
+        PHS_API_URL = 'https://plugin-health.jenkins.io/api/scores'
       }
 
       steps {
