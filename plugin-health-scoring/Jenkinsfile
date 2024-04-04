@@ -1,15 +1,17 @@
-def cronExpr = env.BRANCH_IS_PRIMARY ? 'H * * * *' : ''
-
+def cronExpr = env.BRANCH_IS_PRIMARY ? '@daily' : ''
 def reportsFolder = 'plugin-health-scoring'
 def etagsFile = 'etags.txt'
-def reportFile = 'scores.json'
+def reportFile = env.BRANCH_IS_PRIMARY ? 'scores.json' : "scores-${env.BRANCH_NAME}.json"
 def reportLines = 0
 
 pipeline {
-  agent any
+  agent {
+    label 'jnlp-linux-arm64'
+  }
 
   options {
-    buildDiscarder(logRotator(numToKeepStr: '10'))
+    buildDiscarder logRotator(daysToKeepStr: '90')
+    lock(resource: 'plugin-health-scoring', inversePrecedence: true)
     timeout(time: 5, unit: 'MINUTES')
     disableConcurrentBuilds()
   }
@@ -30,19 +32,13 @@ pipeline {
       steps {
         script {
           reportLines = sh(returnStdout:true, script: '''
-            curl -LSsO https://reports.jenkins.io/${REPORTS_FOLDER}/${ETAGS_FILE} || echo "No previous etags file."
+            curl --location --silent --show-error --remote-name "https://reports.jenkins.io/${REPORTS_FOLDER}/${ETAGS_FILE}" || echo "No previous etags file."
             bash fetch-report.sh
             mkdir -p "${REPORTS_FOLDER}"
-            cp ${REPORT_FILE} ${ETAGS_FILE} ${REPORTS_FOLDER}
+            cp "${REPORT_FILE}" "${ETAGS_FILE}" "${REPORTS_FOLDER}/"
 
-            wc -l ${REPORT_FILE}
+            wc -l "${REPORT_FILE}"
           ''').trim()
-        }
-      }
-
-      post {
-        success {
-          archiveArtifacts artifacts: "${reportFile}, ${etagsFile}"
         }
       }
     }
