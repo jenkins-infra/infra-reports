@@ -25,6 +25,19 @@ set -euxo pipefail
 # SOFTWARE.
 #
 
+## Check for requirements
+for cli in curl jq mkdir cp
+do
+    command -v "${cli}" || { echo "ERROR: command $cli is missing. Exiting."; exit 1; }
+done
+
+: "${REPORTS_FOLDER?Environment variable 'REPORTS_FOLDER' unset}"
+: "${ETAGS_FILE?Environment variable 'REPORTS_FOLDER' unset}"
+: "${REPORT_FILE?Environment variable 'REPORTS_FOLDER' unset}"
+
+# Pre-check for etags
+curl --location --silent --show-error --remote-name "https://reports.jenkins.io/${REPORTS_FOLDER}/${ETAGS_FILE}" || echo "No previous etags file."
+
 ###
 # using --compact-output to reduce output file by half.
 # adding report generation date in 'lastUpdate' key of the report.
@@ -33,3 +46,6 @@ curl --etag-compare "${ETAGS_FILE}" \
     --etag-save "${ETAGS_FILE}" \
     --location --silent --show-error "${HEALTH_URL}" \
     | jq --compact-output '. + { lastUpdate: (now | todate) }' > "${REPORT_FILE}"
+
+mkdir -p "${REPORTS_FOLDER}"
+cp "${REPORT_FILE}" "${ETAGS_FILE}" "${REPORTS_FOLDER}/"

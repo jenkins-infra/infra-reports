@@ -30,15 +30,14 @@ pipeline {
       }
 
       steps {
-        script {
-          reportLines = sh(returnStdout:true, script: '''
-            curl --location --silent --show-error --remote-name "https://reports.jenkins.io/${REPORTS_FOLDER}/${ETAGS_FILE}" || echo "No previous etags file."
-            bash fetch-report.sh
-            mkdir -p "${REPORTS_FOLDER}"
-            cp "${REPORT_FILE}" "${ETAGS_FILE}" "${REPORTS_FOLDER}/"
-
-            wc -l "${REPORT_FILE}"
-          ''').trim()
+        dir('plugin-health-scoring') {
+          sh 'bash fetch-report.sh'
+          // Retrieve the amount of lines in the report file to conditionally publish
+          script {
+            reportLines = sh(returnStdout:true, script: '''
+            wc -l "${REPORT_FILE}" | awk '{print $1}'
+            ''').trim()
+          }
         }
       }
     }
@@ -51,7 +50,9 @@ pipeline {
       }
 
       steps {
-        publishReports([ "${reportsFolder}/${reportFile}", "${reportsFolder}/${etagsFile}" ])
+        dir('plugin-health-scoring') {
+          publishReports([ "${reportsFolder}/${reportFile}", "${reportsFolder}/${etagsFile}" ])
+        }
       }
     }
   }
