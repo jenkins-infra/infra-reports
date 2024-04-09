@@ -1,4 +1,4 @@
-def cronExpr = env.BRANCH_IS_PRIMARY ? '@daily' : ''
+def cronExpr = env.BRANCH_IS_PRIMARY ? '@hourly' : ''
 def reportsFolder = 'plugin-health-scoring'
 def etagsFile = 'etags.txt'
 def reportFile = env.BRANCH_IS_PRIMARY ? 'scores.json' : "scores-${env.BRANCH_NAME}.json"
