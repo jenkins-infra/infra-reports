@@ -34,6 +34,7 @@ done
 : "${REPORTS_FOLDER?Environment variable 'REPORTS_FOLDER' unset}"
 : "${ETAGS_FILE?Environment variable 'REPORTS_FOLDER' unset}"
 : "${REPORT_FILE?Environment variable 'REPORTS_FOLDER' unset}"
+: "${PHS_API_URL?Environment variable 'PHS_API_URL' unset}"
 
 # Pre-check for etags
 curl --location --silent --show-error --remote-name "https://reports.jenkins.io/${REPORTS_FOLDER}/${ETAGS_FILE}" || echo "No previous etags file."
@@ -44,7 +45,7 @@ curl --location --silent --show-error --remote-name "https://reports.jenkins.io/
 ###
 curl --etag-compare "${ETAGS_FILE}" \
     --etag-save "${ETAGS_FILE}" \
-    --location --silent --show-error "${PHS_API_URL}" \
+    --location --fail --silent --show-error "${PHS_API_URL}" \
     | jq --compact-output '. + { lastUpdate: (now | todate) }' > "${REPORT_FILE}"
 
 mkdir -p "${REPORTS_FOLDER}"

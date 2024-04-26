@@ -21,7 +21,7 @@ pipeline {
   }
 
   stages {
-    stage('Fetch API') {
+    stage('Generate Report') {
       environment {
         REPORTS_FOLDER = "${reportsFolder}"
         ETAGS_FILE = "${etagsFile}"
@@ -32,12 +32,21 @@ pipeline {
       steps {
         dir('plugin-health-scoring') {
           sh 'bash fetch-report.sh'
+          archiveArtifacts reportFile
+        }
+      }
+    }
+
+    stage('Check Generated Report') {
+      steps {
+        dir('plugin-health-scoring') {
           // Retrieve the amount of lines in the report file to conditionally publish
           script {
             reportLines = sh(returnStdout:true, script: '''
             wc -l "${REPORT_FILE}" | awk '{print $1}'
             ''').trim()
           }
+          echo "Found reportLines=${reportLines}"
         }
       }
     }
