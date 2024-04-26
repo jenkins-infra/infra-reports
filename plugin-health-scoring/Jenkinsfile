@@ -37,30 +37,18 @@ pipeline {
       }
     }
 
-    stage('Check Generated Report') {
+    stage('Publish if report not empty') {
       steps {
         dir('plugin-health-scoring') {
-          // Retrieve the amount of lines in the report file to conditionally publish
           script {
             reportLines = sh(returnStdout:true, script: '''
             wc -l "${REPORT_FILE}" | awk '{print $1}'
             ''').trim()
+            echo "Found reportLines=${reportLines}"
+            if (reportLines > 0) {
+              publishReports([ "${reportsFolder}/${reportFile}", "${reportsFolder}/${etagsFile}" ])
+            }
           }
-          echo "Found reportLines=${reportLines}"
-        }
-      }
-    }
-
-    stage('Publish') {
-      when {
-        expression {
-          infra.isInfra() && reportLines > 0
-        }
-      }
-
-      steps {
-        dir('plugin-health-scoring') {
-          publishReports([ "${reportsFolder}/${reportFile}", "${reportsFolder}/${etagsFile}" ])
         }
       }
     }
