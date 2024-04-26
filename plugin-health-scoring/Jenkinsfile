@@ -9,6 +9,13 @@ pipeline {
     label 'jnlp-linux-arm64'
   }
 
+  environment {
+    REPORTS_FOLDER = "${reportsFolder}"
+    ETAGS_FILE = "${etagsFile}"
+    REPORT_FILE = "${reportFile}"
+    PHS_API_URL = 'https://plugin-health.jenkins.io/api/scores'
+  }
+
   options {
     buildDiscarder logRotator(daysToKeepStr: '90')
     lock(resource: 'plugin-health-scoring', inversePrecedence: true)
@@ -22,13 +29,6 @@ pipeline {
 
   stages {
     stage('Generate Report') {
-      environment {
-        REPORTS_FOLDER = "${reportsFolder}"
-        ETAGS_FILE = "${etagsFile}"
-        REPORT_FILE = "${reportFile}"
-        PHS_API_URL = 'https://plugin-health.jenkins.io/api/scores'
-      }
-
       steps {
         dir('plugin-health-scoring') {
           sh 'bash fetch-report.sh'
