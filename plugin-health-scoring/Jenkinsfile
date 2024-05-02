@@ -1,6 +1,5 @@
 def cronExpr = env.BRANCH_IS_PRIMARY ? '@hourly' : ''
 def reportsFolder = 'plugin-health-scoring'
-def etagsFile = 'etags.txt'
 def reportFile = env.BRANCH_IS_PRIMARY ? 'scores.json' : "scores-${env.BRANCH_NAME}.json"
 def reportLines = 0
 
@@ -11,7 +10,6 @@ pipeline {
 
   environment {
     REPORTS_FOLDER = "${reportsFolder}"
-    ETAGS_FILE = "${etagsFile}"
     REPORT_FILE = "${reportFile}"
     PHS_API_URL = 'https://plugin-health.jenkins.io/api/scores'
   }
