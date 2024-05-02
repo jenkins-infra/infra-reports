@@ -43,4 +43,4 @@ curl --location --fail --silent --show-error "${PHS_API_URL}" \
     | jq --compact-output '. + { lastUpdate: (now | todate) }' > "${REPORT_FILE}"
 
 mkdir -p "${REPORTS_FOLDER}"
-cp "${REPORT_FILE}" "${ETAGS_FILE}" "${REPORTS_FOLDER}/"
+cp "${REPORT_FILE}" "${REPORTS_FOLDER}/"
