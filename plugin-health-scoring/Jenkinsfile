@@ -44,7 +44,7 @@ pipeline {
             ''').trim()
             echo "Found reportLines=${reportLines}"
             if (reportLines > 0) {
-              publishReports([ "${reportsFolder}/${reportFile}", "${reportsFolder}/${etagsFile}" ])
+              publishReports([ "${reportsFolder}/${reportFile}" ])
             }
           }
         }
