@@ -26,13 +26,13 @@ pipeline {
   }
 
   stages {
-    when {
-      anyOf {
-        changeset 'plugin-health-scoring/**/*'
-        expression { env.BRANCH_IS_PRIMARY }
-      }
-    }
     stage('Generate Report') {
+      when {
+        anyOf {
+          changeset 'plugin-health-scoring/**/*'
+          expression { env.BRANCH_IS_PRIMARY }
+        }
+      }
       steps {
         dir('plugin-health-scoring') {
           sh 'bash fetch-report.sh'
