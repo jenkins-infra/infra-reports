@@ -17,7 +17,7 @@ pipeline {
     label 'jnlp-linux-arm64'
   }
   environment {
-    DIST_DIR = "${WORKSPACE}/dist"
+    DIST_DIR = "${WORKSPACE}/jenkins-infra-data/dist"
     PUBLISHED_REPORT = "${reportFolder}/${reportName}"
     REPORT_FOLDER = "${reportFolder}"
     REPORT_NAME = "${reportName}"
@@ -35,8 +35,9 @@ pipeline {
       steps {
         dir('jenkins-infra-data') {
           sh './generate-infra-data.sh "${REPORT_NAME}" "${DIST_DIR}" "${VERSION}"'
+          sh 'ls -ltr "${DIST_DIR}"'
 
-          archiveArtifacts artifacts: "${env.DIST_DIR}/**/*"
+          archiveArtifacts artifacts: env.DIST_DIR
         }
       }
     }
