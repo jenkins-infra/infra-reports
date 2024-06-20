@@ -25,6 +25,13 @@ pipeline {
   }
   stages {
     stage('Generate Jenkins Infrastructure Public Data report') {
+      when {
+        // Build only on principal branch, or if a change was found in the directory 'jenkins-infra-data/'
+        anyOf {
+          changeset 'jenkins-infra-data/**/*'
+          expression { env.BRANCH_IS_PRIMARY }
+        }
+      }
       steps {
         dir('jenkins-infra-data') {
           sh './generate-infra-data.sh "${REPORT_NAME}" "${DIST_DIR}" "${VERSION}"'
