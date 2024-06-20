@@ -26,12 +26,12 @@ json='{}'
 lastUpdate="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
 getJenkinsIoData="$(./get-jenkins-io_mirrors.sh)"
 # Add current date and API version
-getJenkinsIoData="$(echo "${getJenkinsIoData}" | jq --raw-output0 --compact-output \
+getJenkinsIoData="$(echo "${getJenkinsIoData}" | jq --compact-output \
   --arg lastUpdate "${lastUpdate}" \
   --arg version "${VERSION}" \
   '. += {"lastUpdate": $lastUpdate, "version": $version}')"
 echo "${json}"
-json="$(echo "${json}" | jq --raw-output0 --compact-output \
+json="$(echo "${json}" | jq --compact-output \
   --argjson getJenkinsIoData "${getJenkinsIoData}" \
   '. + {"get.jenkins.io": $getJenkinsIoData}' \
 )"
