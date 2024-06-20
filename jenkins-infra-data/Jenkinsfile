@@ -37,7 +37,7 @@ pipeline {
           sh './generate-infra-data.sh "${REPORT_NAME}" "${DIST_DIR}" "${VERSION}"'
           sh 'ls -ltr "${DIST_DIR}"'
 
-          archiveArtifacts artifacts: env.DIST_DIR
+          archiveArtifacts artifacts: 'dist/**'
         }
       }
     }
