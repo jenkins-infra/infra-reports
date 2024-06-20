@@ -1,5 +1,5 @@
 def cronExpr = env.BRANCH_IS_PRIMARY ? '@hourly' : ''
-def reportName = env.BRANCH_IS_PRIMARY ? 'artifactory-ldap-users-report.json' : "artifactory-ldap-users-report-${env.BRANCH_NAME}.json"
+def reportName = 'artifactory-ldap-users-report.json'
 
 pipeline {
   triggers {
@@ -8,14 +8,20 @@ pipeline {
   options {
     // This pipeline takes 1-2 minutes max to execute
     timeout(time: 10, unit: 'MINUTES')
-    lock(resource: 'infra-reports-artifactory-users', inversePrecedence: true)
+    lock(resource: "artifactory-ldap-users-report-${env.BRANCH_NAME}", inversePrecedence: true)
     buildDiscarder logRotator(daysToKeepStr: '90')
   }
   agent {
-     label 'jnlp-linux-arm64'
+    label 'jnlp-linux-arm64'
   }
   stages {
     stage('Generate Artifactory Users Report') {
+      when {
+        anyOf {
+          changeset 'artifactory-users-report/**/*'
+          expression { env.BRANCH_IS_PRIMARY }
+        }
+      }
       environment {
         ARTIFACTORY_AUTH = credentials('artifactoryAdmin')
         REPORT_NAME = "${reportName}"

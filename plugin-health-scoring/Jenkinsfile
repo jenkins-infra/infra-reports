@@ -1,6 +1,6 @@
 def cronExpr = env.BRANCH_IS_PRIMARY ? '@hourly' : ''
 def reportsFolder = 'plugin-health-scoring'
-def reportFile = env.BRANCH_IS_PRIMARY ? 'scores.json' : "scores-${env.BRANCH_NAME}.json"
+def reportFile = 'scores.json'
 def reportLines = 0
 
 pipeline {
@@ -16,7 +16,7 @@ pipeline {
 
   options {
     buildDiscarder logRotator(daysToKeepStr: '90')
-    lock(resource: 'plugin-health-scoring', inversePrecedence: true)
+    lock(resource: "plugin-health-scoring-${env.BRANCH_NAME}", inversePrecedence: true)
     timeout(time: 5, unit: 'MINUTES')
     disableConcurrentBuilds()
   }
@@ -27,6 +27,12 @@ pipeline {
 
   stages {
     stage('Generate Report') {
+      when {
+        anyOf {
+          changeset 'plugin-health-scoring/**/*'
+          expression { env.BRANCH_IS_PRIMARY }
+        }
+      }
       steps {
         dir('plugin-health-scoring') {
           sh 'bash fetch-report.sh'
@@ -36,6 +42,11 @@ pipeline {
     }
 
     stage('Publish if report not empty') {
+      when {
+        anyOf {
+          expression { env.BRANCH_IS_PRIMARY }
+        }
+      }
       steps {
         dir('plugin-health-scoring') {
           script {
