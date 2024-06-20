@@ -1,5 +1,5 @@
 def cronExpr = env.BRANCH_IS_PRIMARY ? '@daily' : ''
-def reportName = env.BRANCH_IS_PRIMARY ? 'github-jenkinsci-fork-report.json' : "github-jenkinsci-fork-report-${env.BRANCH_NAME}.json"
+def reportName = 'github-jenkinsci-fork-report.json'
 
 pipeline {
   triggers {
@@ -8,7 +8,7 @@ pipeline {
   options {
     // This pipeline takes 1-2 minutes max to execute
     timeout(time: 10, unit: 'MINUTES')
-    lock(resource: 'infra-reports-github-forks', inversePrecedence: true)
+    lock(resource: "github-jenkinsci-fork-report-${env.BRANCH_NAME}", inversePrecedence: true)
     buildDiscarder logRotator(daysToKeepStr: '90')
   }
   agent {
@@ -16,6 +16,12 @@ pipeline {
   }
   stages {
     stage('Generate GitHub Forks Report') {
+      when {
+        anyOf {
+          changeset 'fork-report/**/*'
+          expression { env.BRANCH_IS_PRIMARY }
+        }
+      }
       environment {
         // Requires 'jenkins-infra-reports' to be of type GithubAppCredentials so $GITHUB_AUTH_PSW holds an IAT (Github Installation Access Token) valid for 1 hour
         GITHUB_AUTH = credentials('jenkins-infra-reports')

@@ -1,5 +1,5 @@
 def cronExpr = env.BRANCH_IS_PRIMARY ? 'H H/2 * * *' : ''
-def reportName = env.BRANCH_IS_PRIMARY ? 'jira-users-report.json' : "jira-users-report-${env.BRANCH_NAME}.json"
+def reportName = 'jira-users-report.json'
 
 pipeline {
   triggers {
@@ -8,7 +8,7 @@ pipeline {
   options {
     // This pipeline takes ~1.5 hour to run
     timeout(time: 2, unit: 'HOURS')
-    lock(resource: 'infra-reports-jira-users', inversePrecedence: true)
+    lock(resource: "jira-users-report-${env.BRANCH_NAME}", inversePrecedence: true)
     buildDiscarder logRotator(daysToKeepStr: '90')
   }
   agent {
@@ -16,6 +16,12 @@ pipeline {
   }
   stages {
     stage('Generate JIRA Users Report') {
+      when {
+        anyOf {
+          changeset 'jira-users-report/**/*'
+          expression { env.BRANCH_IS_PRIMARY }
+        }
+      }
       environment {
         JIRA_AUTH = credentials('jiraAuth')
         REPORT_NAME = "${reportName}"

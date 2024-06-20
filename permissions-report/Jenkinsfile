@@ -1,5 +1,5 @@
 def cronExpr = env.BRANCH_IS_PRIMARY ? '@daily' : ''
-def reportName = env.BRANCH_IS_PRIMARY ? 'github-jenkinsci-permissions-report.json' : "github-jenkinsci-permissions-report-${env.BRANCH_NAME}.json"
+def reportName = 'github-jenkinsci-permissions-report.json'
 
 pipeline {
   triggers {
@@ -8,7 +8,7 @@ pipeline {
   options {
     // This pipeline takes 6-7 hours max to execute
     timeout(time: 10, unit: 'HOURS')
-    lock(resource: 'infra-reports-github-permissions', inversePrecedence: true)
+    lock(resource: "github-jenkinsci-permissions-report-${env.BRANCH_NAME}", inversePrecedence: true)
     buildDiscarder logRotator(daysToKeepStr: '90')
   }
   agent {
@@ -16,12 +16,18 @@ pipeline {
   }
   stages {
     stage('Generate GitHub Permissions Report') {
-        environment {
-            GITHUB_APP_PRIVATE_KEY_B64 = credentials('githubapp-jenkins-infra-reports-private-key-b64')
-            GITHUB_APP_ID = credentials('githubapp-jenkins-infra-reports-app-identifier')
-            GITHUB_ORG_NAME = "jenkinsci"
-            REPORT_NAME = "${reportName}"
-          }
+      when {
+        anyOf {
+          changeset 'permissions-report/**/*'
+          expression { env.BRANCH_IS_PRIMARY }
+        }
+      }
+      environment {
+        GITHUB_APP_PRIVATE_KEY_B64 = credentials('githubapp-jenkins-infra-reports-private-key-b64')
+        GITHUB_APP_ID = credentials('githubapp-jenkins-infra-reports-app-identifier')
+        GITHUB_ORG_NAME = "jenkinsci"
+        REPORT_NAME = "${reportName}"
+      }
       steps {
         dir('permissions-report') {
           sh 'bundle install'
