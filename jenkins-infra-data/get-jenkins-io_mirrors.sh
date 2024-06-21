@@ -5,28 +5,30 @@ set -o errexit
 set -o pipefail
 set -x
 
-command -v "jq" >/dev/null || { echo "[ERROR] no 'jq' command found."; exit 1; }
-command -v "xq" >/dev/null || { echo "[ERROR] no 'xq' command found."; exit 1; }
-command -v "dig" >/dev/null || { echo "[ERROR] no 'dig' command found."; exit 1; }
+command -v 'jq' >/dev/null || { echo "[ERROR] no 'jq' command found."; exit 1; }
+command -v 'xq' >/dev/null || { echo "[ERROR] no 'xq' command found."; exit 1; }
+command -v 'dig' >/dev/null || { echo "[ERROR] no 'dig' command found."; exit 1; }
 
 test -d "${DIST_DIR}"
 
 sourceHTML="${DIST_DIR}"/source.html
-source="https://get.jenkins.io/index.html?mirrorstats"
+mirrorsSource='https://get.jenkins.io/index.html?mirrorstats'
+mirrorTableQuery='body > div > div > div > table'
+mirrorRowXPath='//table/tbody/tr'
+cellXPath='//td[@rowspan=2]'
+fallback='archives.jenkins.io'
 
-mirrorTableQuery="body > div > div > div > table"
-mirrorRowXPath="//table/tbody/tr"
-cellXPath="//td[@rowspan=2]"
-fallback="archives.jenkins.io"
+azureNetSource='https://reports.jenkins.io/jenkins-infra-data-reports/azure-net.json'
+azureNetJsonFile="${DIST_DIR}"/azure-net.json
 
 # Retrieve the source HTML into $sourceHTML file
-curl --silent --max-redirs 2 --request GET --location "${source}" --output "${sourceHTML}"
+curl --silent --max-redirs 2 --request GET --location "${mirrorsSource}" --output "${sourceHTML}"
 
 # Retrieving all rows of the table containing all mirrors
 mirrorRows="$(xq --node --query "${mirrorTableQuery}" "${sourceHTML}" | xq --node --xpath "${mirrorRowXPath}")"
 
 if [[ -z "${mirrorRows}" ]]; then
-    echo "Error: no mirror returned from ${source}"
+    echo "Error: no mirror returned from ${mirrorsSource}"
     exit 1
 fi
 
@@ -47,9 +49,22 @@ do
 done <<< "${hostnames}"
 
 if [[ "${json}" == '{"mirrors": []}' ]]; then
-    echo "Error: no mirror returned from ${source}"
+    echo "Error: no mirror returned from ${mirrorsSource}"
     exit 1
 fi
+
+## Provide outbound IPs for mirror providers to add in their allow-list for scanning
+curl --silent --max-redirs 2 --request GET --location "${azureNetSource}" --output "${azureNetJsonFile}"
+
+# publick8s hosts the mirrorbits services which emit outbound requests to scan external mirrors
+publick8sIpv4List="$(jq '.["publick8s.jenkins.io"].outbound_ips' "${azureNetJsonFile}")"
+# infra.ci.jenkins.io (controller and agents) may emit outbound requests to external mirrors for testing or setup purposes
+infraciIpv4List="$(jq '.["infra.ci.jenkins.io"].outbound_ips' "${azureNetJsonFile}")"
+json="$(echo "${json}" | jq \
+    --argjson publick8sIpv4List "${publick8sIpv4List}" \
+    --argjson infraciIpv4List "${infraciIpv4List}" \
+    '. += {"outbound_ips": ([$publick8sIpv4List + $infraciIpv4List] | flatten | unique)}' \
+)"
 
 echo "${json}"
 exit 0
