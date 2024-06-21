@@ -1,0 +1,55 @@
+name: Bump Ruby version in ASDF tools
+
+scms:
+  default:
+    kind: github
+    spec:
+      user: "{{ .github.user }}"
+      email: "{{ .github.email }}"
+      owner: "{{ .github.owner }}"
+      repository: "{{ .github.repository }}"
+      token: "{{ requiredEnv .github.token }}"
+      username: "{{ .github.username }}"
+      branch: "{{ .github.branch }}"
+
+sources:
+  getInfraCIPackerImageVersion:
+    kind: file
+    name: Retrieve the current version of the Packer images used in production on infra.ci.jenkins.io
+    spec:
+      file: https://raw.githubusercontent.com/jenkins-infra/kubernetes-management/main/config/jenkins_infra.ci.jenkins.io.yaml
+      # Prefiltering to avoid verbose output
+      matchpattern: 'galleryImageVersion:\s"(.*)"'
+    transformers:
+      - findsubmatch:
+          pattern: 'galleryImageVersion:\s"(.*)"'
+          captureindex: 1
+  getRubyVersionFromPackerImages:
+    kind: yaml
+    name: Get the latest Ruby version set in packer-images
+    dependson:
+      - getInfraCIPackerImageVersion
+    spec:
+      file: https://raw.githubusercontent.com/jenkins-infra/packer-images/{{ source "getInfraCIPackerImageVersion" }}/provisioning/tools-versions.yml
+      key: $.ruby_version
+
+targets:
+  updateAsdfToolsVersion:
+    name: Update Ruby in the ASDF tools version file
+    kind: file
+    disablesourceinput: true
+    spec:
+      file: .tool-versions
+      matchpattern: 'ruby\s(.*)'
+      replacepattern: 'ruby {{ source "getRubyVersionFromPackerImages" }}'
+    scmid: default
+
+actions:
+  default:
+    kind: github/pullrequest
+    scmid: default
+    spec:
+      title: Bump Ruby version in ASDF tools to {{ source "getRubyVersionFromPackerImages" }}
+      labels:
+        - chore
+        - ruby
