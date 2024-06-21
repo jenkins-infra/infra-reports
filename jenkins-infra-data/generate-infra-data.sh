@@ -9,7 +9,7 @@ set -x
 
 REPORT_NAME="$1"
 test -n "${REPORT_NAME}"
-DIST_DIR="$2"
+DIST_DIR="${2%/}"
 test -n "${DIST_DIR}"
 mkdir -p "${DIST_DIR}"
 # Sub scripts need this
