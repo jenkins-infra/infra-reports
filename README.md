@@ -1,6 +1,6 @@
 # Jenkins GitHub Reports
 
-If you want to execute these scripts locally, use the Docker image `jenkinsciinfra/helmfile` (source code at <https://github.com/jenkins-infra/docker-helmfile>).
+If you want to execute these scripts locally, use the Docker image `jenkinsciinfra/helmfile`.
 It includes all the required dependencies:
 
 - Ruby
