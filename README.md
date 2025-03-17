@@ -1,6 +1,6 @@
 # Jenkins GitHub Reports
 
-If you want to execute these scripts locally, use the Docker image `jenkinsciinfra/helmfile`(source at [https://hub.docker.com/r/jenkinsciinfra/helmfile/tags](https://hub.docker.com/r/jenkinsciinfra/helmfile/tags)).
+If you want to execute these scripts locally, use the Docker image `jenkinsciinfra/jenkins-agent-ubuntu-22.04`(source code at <https://github.com/jenkins-infra/packer-images>).
 It includes all the required dependencies:
 
 - Ruby
