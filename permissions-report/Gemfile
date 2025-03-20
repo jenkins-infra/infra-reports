@@ -11,3 +11,7 @@ gem 'openssl'
 gem 'jwt'
 gem 'time'
 gem 'base64'
+
+gem "csv", "~> 3.3"
+
+gem "logger", "~> 1.6"
