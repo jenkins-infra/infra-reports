@@ -17,8 +17,10 @@ GEM
     connection_pool (2.4.1)
     date (3.3.4)
     drb (2.2.1)
-    graphql (2.3.0)
+    fiber-storage (1.0.0)
+    graphql (2.3.21)
       base64
+      fiber-storage
     graphql-client (0.21.0)
       activesupport (>= 3.0)
       graphql (>= 1.13.0)
