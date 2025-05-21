@@ -1,0 +1,55 @@
+{
+  "mirrors": {
+    "ftp.halifax.rwth-aachen.de": {
+      "outbound_ipv4": [
+        "137.226.34.46"
+      ],
+      "outbound_ipv6": [
+        "2a00:8a60:e012:a00::21"
+      ]
+    },
+    "ftp.belnet.be": {},
+    "ftp-chi.osuosl.org": {},
+    "ftp-nyc.osuosl.org": {},
+    "mirror.xmission.com": {},
+    "mirrors.tuna.tsinghua.edu.cn": {},
+    "sg.mirror.servanamanaged.com": {},
+    "2.mirrors.in.sahilister.net": {},
+    "mirror.bom.albony.in": {},
+    "mirror.bom2.albony.in": {},
+    "mirror.twds.com.tw": {
+      "outbound_ipv4": [
+        "103.147.22.36"
+      ],
+      "outbound_ipv6": [
+        "2405:a640::36"
+      ]
+    },
+    "repo.jing.rocks": {
+      "outbound_ipv4": [
+        "106.178.112.231"
+      ],
+      "outbound_ipv6": [
+        "240b:10:f00:1b00::/56"
+      ]
+    },
+    "mirror.ossplanet.net": {},
+    "ftp.yz.yamagata-u.ac.jp": {
+      "outbound_ipv4": [
+        "133.24.248.16",
+        "133.24.248.17",
+        "133.24.248.18",
+        "133.24.248.19",
+        "133.24.248.21"
+      ],
+      "outbound_ipv6": [
+        "2001:df0:25e:e100::3",
+        "2001:df0:25e:e100::2"
+      ]
+    },
+    "mirror.del.albony.in": {},
+    "mirror.freedif.org": {},
+    "mirror.yandex.ru": {},
+    "mirrors.hostico.ro": {}
+  }
+}

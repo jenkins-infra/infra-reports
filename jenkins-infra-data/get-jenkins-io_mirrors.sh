@@ -34,6 +34,7 @@ fi
 
 # Retrieve list of hostnames, one per line. Keep only cells not finishing by " ago" (last update column) and that are not the fallback mirror.
 hostnames="$(echo "${mirrorRows}" | xq --xpath "${cellXPath}" | grep -v ' ago' | grep -v "${fallback}")"
+additional_data="$(cd "$(dirname "$0")" && pwd -P)/get-jenkins-io-data.json"
 
 json='{"mirrors": []}'
 while IFS= read -r hostname
@@ -41,11 +42,25 @@ do
     # As dig(1) can returns CNAME values, we need to filter IPs from its result(s) (those not finishing by a ".")
     ipv4="$(dig +short "${hostname}" A | jq --raw-input --slurp 'split("\n") | map(select(test("\\.$") | not)) | map(select(length > 0))')"
     ipv6="$(dig +short "${hostname}" AAAA | jq --raw-input --slurp 'split("\n") | map(select(test("\\.$") | not)) | map(select(length > 0))')"
+    outbound_ipv4="$(jq --raw-output ".mirrors.\"${hostname}\".outbound_ipv4" "${additional_data}")"
+    # Assume the same in and out IPv4s set if not specified in the additional data file
+    if [ "${outbound_ipv4}" == "null" ]
+    then
+        outbound_ipv4="$ipv4"
+    fi
+    outbound_ipv6="$(jq --raw-output ".mirrors.\"${hostname}\".outbound_ipv6" "${additional_data}")"
+    # Assume the same in and out IPv6s set if not specified in the additional data file
+    if [ "${outbound_ipv6}" == "null" ]
+    then
+        outbound_ipv6="$ipv6"
+    fi
     json="$(echo "${json}" | jq \
         --arg hostname "${hostname}" \
         --argjson ipv4 "${ipv4}" \
         --argjson ipv6 "${ipv6}" \
-        '.mirrors |= . + [{"hostname": $hostname, "ipv4": $ipv4, "ipv6": $ipv6}]')"
+        --argjson outbound_ipv4 "${outbound_ipv4}" \
+        --argjson outbound_ipv6 "${outbound_ipv6}" \
+        '.mirrors |= . + [{"hostname": $hostname, "ipv4": $ipv4, "ipv6": $ipv6, "outbound_ipv4": $outbound_ipv4, "outbound_ipv6": $outbound_ipv6}]')"
 done <<< "${hostnames}"
 
 if [[ "${json}" == '{"mirrors": []}' ]]; then
