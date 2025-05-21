@@ -8,7 +8,14 @@
         "2a00:8a60:e012:a00::21"
       ]
     },
-    "ftp.belnet.be": {},
+    "ftp.belnet.be": {
+      "outbound_ipv4": [
+        "193.190.198.27"
+      ],
+      "outbound_ipv6": [
+        "2001:6a8:3c80::27"
+      ]
+    },
     "ftp-chi.osuosl.org": {},
     "ftp-nyc.osuosl.org": {},
     "mirror.xmission.com": {},
