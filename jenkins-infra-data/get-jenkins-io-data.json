@@ -55,7 +55,11 @@
       ]
     },
     "mirror.del.albony.in": {},
-    "mirror.freedif.org": {},
+    "mirror.freedif.org": {
+      "outbound_ipv4": [
+        "66.96.199.63"
+      ]
+    },
     "mirror.yandex.ru": {},
     "mirrors.hostico.ro": {}
   }
