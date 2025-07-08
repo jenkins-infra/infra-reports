@@ -54,7 +54,30 @@
         "240b:10:f00:1b00::/56"
       ]
     },
-    "mirror.ossplanet.net": {},
+    "mirror.ossplanet.net": {
+      "outbound_ipv4": [
+        "163.22.17.70"
+      ],
+      "outbound_ipv6": [
+        "2001:e10:6840:17::70"
+      ]
+    },
+    "mirror.fi.ossplanet.net": {
+      "outbound_ipv4": [
+        "65.21.197.134"
+      ],
+      "outbound_ipv6": [
+        "2a01:4f9:3b:1f22:5::2"
+      ]
+    },
+    "mirror.eu.ossplanet.net": {
+      "outbound_ipv4": [
+        "65.21.121.31"
+      ],
+      "outbound_ipv6": [
+        "2a01:4f9:3b:4992::2"
+      ]
+    },
     "ftp.yz.yamagata-u.ac.jp": {
       "outbound_ipv4": [
         "133.24.248.16",
