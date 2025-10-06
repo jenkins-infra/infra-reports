@@ -1,49 +1,10 @@
-def cronExpr = env.BRANCH_IS_PRIMARY ? '@daily' : ''
-def reportName = 'github-jenkinsci-fork-report.json'
+@Library('pipeline-library@pull/963/head') _
 
-pipeline {
-  triggers {
-    cron(cronExpr)
-  }
-  options {
-    // This pipeline takes 1-2 minutes max to execute
-    timeout(time: 10, unit: 'MINUTES')
-    lock(resource: "github-jenkinsci-fork-report-${env.BRANCH_NAME}", inversePrecedence: true)
-    buildDiscarder logRotator(daysToKeepStr: '90')
-  }
-  agent {
-    label 'jnlp-linux-arm64'
-  }
-  stages {
-    stage('Generate GitHub Forks Report') {
-      when {
-        anyOf {
-          changeset 'fork-report/**/*'
-          expression { env.BRANCH_IS_PRIMARY }
-        }
-      }
-      environment {
-        // Requires 'jenkins-infra-reports' to be of type GithubAppCredentials so $GITHUB_AUTH_PSW holds an IAT (Github Installation Access Token) valid for 1 hour
-        GITHUB_AUTH = credentials('jenkins-infra-reports')
-        REPORT_NAME = "${reportName}"
-      }
-      steps {
-        dir('fork-report') {
-          sh 'bundle install'
-          sh 'bundle exec ruby ./fork-report.rb> "${REPORT_NAME}"'
-          archiveArtifacts reportName
-        }
-      }
-    }
-    stage('Publish GitHub Forks Report') {
-      when {
-        expression { env.BRANCH_IS_PRIMARY }
-      }
-      steps {
-        dir('fork-report') {
-          publishReports ([reportName])
-        }
-      }
-    }
-  }
+node('jnlp-linux-arm64') {
+  sh '''
+  date +%s > test-ddu.txt
+  '''
+
+  publishReports (['test-ddu.txt'])
 }
+
