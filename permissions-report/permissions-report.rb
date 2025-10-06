@@ -166,6 +166,7 @@ repository_cursor = nil
 collaborator_cursor = nil
 error_count = 0
 counter = 0
+max_rescue = 5
 
 loop do
   STDERR.puts "Calling with cursors: repository #{repository_cursor}, collaborator #{collaborator_cursor}"
@@ -175,11 +176,24 @@ loop do
     STDERR.puts "Generating a new token (repo counter: #{counter})"
     $auth = get_auth_token
   end
-  result = GitHubGraphQL::Client.query(CollaboratorsQuery, variables: {
-    github_org_name: GITHUB_ORG_NAME,
-    repository_cursor: repository_cursor,
-    collaborator_cursor: collaborator_cursor
-  }, context: {authorization: $auth})
+  rescue_counter = 0
+  begin
+    result = GitHubGraphQL::Client.query(CollaboratorsQuery, variables: {
+      github_org_name: GITHUB_ORG_NAME,
+      repository_cursor: repository_cursor,
+      collaborator_cursor: collaborator_cursor
+    }, context: {authorization: $auth})
+  rescue EOFError => e
+    STDERR.puts "Rescue of #{e.class}: #{e.message}"
+    if rescue_counter < max_rescue then
+      rescue_counter += 1
+      STDERR.puts "Rescue #{rescue_counter}/#{max_rescue}, retrying in 10 seconds..."
+      sleep 10
+      retry
+    end
+    STDERR.puts 'Consecutive rescue count limit reached, aborting'
+    abort('Too many rescues')
+  end
 
   if !result.errors[:data].empty? then
     STDERR.puts result.errors[:data]
