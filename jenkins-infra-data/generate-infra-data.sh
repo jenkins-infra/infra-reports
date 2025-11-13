@@ -15,30 +15,14 @@ rm -rf "${DIST_DIR}"
 mkdir -p "${DIST_DIR}"
 # Sub scripts need this
 export DIST_DIR
-VERSION="${3:-v1}"
+VERSION="${3}"
 
 command -v "date" >/dev/null || { echo "[ERROR] no 'jq' command found."; exit 1; }
 command -v "jq" >/dev/null || { echo "[ERROR] no 'jq' command found."; exit 1; }
 
-json='{}'
-
-## get.jenkins.io
-getJenkinsIoData="$(./get-jenkins-io_mirrors.sh | jq --compact-output \
-  --arg lastUpdate "$(date -u +"%Y-%m-%dT%H:%M:%SZ")" \
-  --arg version "${VERSION}" \
-  '. += {"lastUpdate": $lastUpdate, "version": $version}')"
-
-## updates.jenkins.io
-# Add current date and API version
-updatesJenkinsIoData="$(./updates-jenkins-io_mirrors.sh | jq --compact-output \
-  --arg lastUpdate "$(date -u +"%Y-%m-%dT%H:%M:%SZ")" \
-  --arg version "${VERSION}" \
-  '. += {"lastUpdate": $lastUpdate, "version": $version}')"
-
-## Aggregate all
-json="$(echo "${json}" | jq --compact-output \
-  --argjson updatesJenkinsIoData "${updatesJenkinsIoData}" \
-  --argjson getJenkinsIoData "${getJenkinsIoData}" \
+json="$(echo '{}' | jq --compact-output \
+  --argjson updatesJenkinsIoData "$(bash ./updates-jenkins-io_mirrors.sh)" \
+  --argjson getJenkinsIoData "$(bash ./get-jenkins-io_mirrors.sh)" \
   --arg lastUpdate "$(date -u +"%Y-%m-%dT%H:%M:%SZ")" \
   --arg version "${VERSION}" \
   '. + {"lastUpdate": $lastUpdate, "version": $version, "updates.jenkins.io": $updatesJenkinsIoData, "get.jenkins.io": $getJenkinsIoData}' \

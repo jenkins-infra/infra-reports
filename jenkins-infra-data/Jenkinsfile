@@ -1,6 +1,6 @@
 def cronExpr = env.BRANCH_IS_PRIMARY ? '@hourly' : ''
 def reportName = 'index.json'
-def version = 'v2'
+def version = 'v3'
 def infraBaseFolder = 'infrastructure'
 def reportFolder = "${infraBaseFolder}/${version}"
 
