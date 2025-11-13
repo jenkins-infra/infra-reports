@@ -39,7 +39,9 @@ updatesJenkinsIoData="$(./updates-jenkins-io_mirrors.sh | jq --compact-output \
 json="$(echo "${json}" | jq --compact-output \
   --argjson updatesJenkinsIoData "${updatesJenkinsIoData}" \
   --argjson getJenkinsIoData "${getJenkinsIoData}" \
-  '. + {"updates.jenkins.io": $updatesJenkinsIoData, "get.jenkins.io": $getJenkinsIoData}' \
+  --arg lastUpdate "$(date -u +"%Y-%m-%dT%H:%M:%SZ")" \
+  --arg version "${VERSION}" \
+  '. + {"lastUpdate": $lastUpdate, "version": $version, "updates.jenkins.io": $updatesJenkinsIoData, "get.jenkins.io": $getJenkinsIoData}' \
 )"
 
 ## Write report
