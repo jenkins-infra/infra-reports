@@ -1,7 +1,8 @@
 def cronExpr = env.BRANCH_IS_PRIMARY ? '@hourly' : ''
 def reportName = 'index.json'
 def version = 'v2'
-def reportFolder = "infrastructure/${version}"
+def infraBaseFolder = 'infrastructure'
+def reportFolder = "${infraBaseFolder}/${version}"
 
 pipeline {
   triggers {
@@ -22,6 +23,7 @@ pipeline {
     REPORT_FOLDER = "${reportFolder}"
     REPORT_NAME = "${reportName}"
     VERSION = "${version}"
+    INFRA_BASE_FOLDER = "${infraBaseFolder}"
   }
   stages {
     stage('Generate Jenkins Infrastructure Public Data report') {
@@ -50,9 +52,10 @@ pipeline {
           # Prepare directory/file structure for reports publication
           mkdir -p "${REPORT_FOLDER}"
           cp "${DIST_DIR}/${REPORT_NAME}" "${PUBLISHED_REPORT}"
+          cp -r "${DIST_DIR}" "${INFRA_BASE_FOLDER}/latest"
           '''
 
-          publishReports ([env.PUBLISHED_REPORT])
+          publishReports ([env.INFRA_BASE_FOLDER])
         }
       }
     }
