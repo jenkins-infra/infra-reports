@@ -16,7 +16,6 @@ mirrorTableQuery='body > div > div > div > table'
 mirrorRowXPath='//table/tbody/tr'
 cellXPath='//td[@rowspan=2]'
 fallback='archives.jenkins.io'
-azureNetSource='https://reports.jenkins.io/jenkins-infra-data-reports/azure-net.json'
 
 # Retrieve the source HTML
 sourceHTML="$(curl --silent --show-error --location "${mirrorsSource}")"
@@ -69,12 +68,15 @@ if [[ "${json}" == '{"mirrors": []}' ]]; then
 fi
 
 ## Provide outbound IPs for mirror providers to add in their allow-list for scanning
-azureNetReport="$(curl --silent --show-error --location "${azureNetSource}")"
 
 # publick8s hosts the mirrorbits services which emit outbound requests to scan external mirrors
-publick8sIpv4List="$(echo "${azureNetReport}" | jq '.["publick8s.jenkins.io"].outbound_ips')"
+publick8sIpv4List="$(curl --silent --show-error --location 'https://reports.jenkins.io/jenkins-infra-data-reports/azure.json' \
+    | jq '.["publick8s"].lb_outbound_ips.ipv4' \
+)"
 # infra.ci.jenkins.io (controller and agents) may emit outbound requests to external mirrors for testing or setup purposes
-infraciIpv4List="$(echo "${azureNetReport}" | jq '.["infra.ci.jenkins.io"].outbound_ips')"
+infraciIpv4List="$(curl --silent --show-error --location 'https://reports.jenkins.io/jenkins-infra-data-reports/azure-net.json' \
+    | jq '.["infra.ci.jenkins.io"].outbound_ips' \
+)"
 json="$(echo "${json}" | jq \
     --argjson publick8sIpv4List "${publick8sIpv4List}" \
     --argjson infraciIpv4List "${infraciIpv4List}" \
