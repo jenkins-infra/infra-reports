@@ -11,21 +11,21 @@ command -v 'dig' >/dev/null || { echo "[ERROR] no 'dig' command found."; exit 1;
 
 test -d "${DIST_DIR}"
 
-sourceHTML="${DIST_DIR}"/source.html
 mirrorsSource='https://get.jenkins.io/index.html?mirrorstats'
 mirrorTableQuery='body > div > div > div > table'
 mirrorRowXPath='//table/tbody/tr'
 cellXPath='//td[@rowspan=2]'
 fallback='archives.jenkins.io'
-
 azureNetSource='https://reports.jenkins.io/jenkins-infra-data-reports/azure-net.json'
-azureNetJsonFile="${DIST_DIR}"/azure-net.json
 
-# Retrieve the source HTML into $sourceHTML file
-curl --silent --max-redirs 2 --request GET --location "${mirrorsSource}" --output "${sourceHTML}"
+# Retrieve the source HTML
+sourceHTML="$(curl --silent --show-error --location "${mirrorsSource}")"
 
 # Retrieving all rows of the table containing all mirrors
-mirrorRows="$(xq --node --query "${mirrorTableQuery}" "${sourceHTML}" | xq --node --xpath "${mirrorRowXPath}")"
+mirrorRows="$(echo "${sourceHTML}" \
+    | xq --node --query "${mirrorTableQuery}" \
+    | xq --node --xpath "${mirrorRowXPath}"\
+)"
 
 if [[ -z "${mirrorRows}" ]]; then
     echo "Error: no mirror returned from ${mirrorsSource}"
@@ -69,12 +69,12 @@ if [[ "${json}" == '{"mirrors": []}' ]]; then
 fi
 
 ## Provide outbound IPs for mirror providers to add in their allow-list for scanning
-curl --silent --max-redirs 2 --request GET --location "${azureNetSource}" --output "${azureNetJsonFile}"
+azureNetReport="$(curl --silent --show-error --location "${azureNetSource}")"
 
 # publick8s hosts the mirrorbits services which emit outbound requests to scan external mirrors
-publick8sIpv4List="$(jq '.["publick8s.jenkins.io"].outbound_ips' "${azureNetJsonFile}")"
+publick8sIpv4List="$(echo "${azureNetReport}" | jq '.["publick8s.jenkins.io"].outbound_ips')"
 # infra.ci.jenkins.io (controller and agents) may emit outbound requests to external mirrors for testing or setup purposes
-infraciIpv4List="$(jq '.["infra.ci.jenkins.io"].outbound_ips' "${azureNetJsonFile}")"
+infraciIpv4List="$(echo "${azureNetReport}" | jq '.["infra.ci.jenkins.io"].outbound_ips')"
 json="$(echo "${json}" | jq \
     --argjson publick8sIpv4List "${publick8sIpv4List}" \
     --argjson infraciIpv4List "${infraciIpv4List}" \
