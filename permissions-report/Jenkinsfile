@@ -12,7 +12,7 @@ pipeline {
     buildDiscarder logRotator(daysToKeepStr: '90')
   }
   agent {
-    label 'jnlp-linux-arm64'
+    label 'linux-arm64-nonspot'
   }
   stages {
     stage('Generate GitHub Permissions Report') {
