@@ -23,3 +23,6 @@ coverage
 .env.local
 # Stores VSCode versions used for testing VSCode extensions
 .vscode-test
+
+# Don't commit generated files aimed at being distributed
+dist/
