@@ -17,7 +17,7 @@ sources:
     kind: file
     name: Retrieve the current version of the Packer images used in production on infra.ci.jenkins.io
     spec:
-      file: https://raw.githubusercontent.com/jenkins-infra/kubernetes-management/main/config/jenkins_infra.ci.jenkins.io.yaml
+      file: https://raw.githubusercontent.com/jenkins-infra/kubernetes-management/refs/heads/main/config/privatek8s-sponsored/infra.ci.jenkins.io.yaml
       # Prefiltering to avoid verbose output
       matchpattern: 'galleryImageVersion:\s"(.*)"'
     transformers:
