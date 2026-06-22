@@ -6,8 +6,7 @@ pipeline {
     cron(cronExpr)
   }
   options {
-    // This pipeline takes 9-10 hours max to execute
-    timeout(time: 15, unit: 'HOURS')
+    timeout(time: 20, unit: 'HOURS')
     lock(resource: "github-jenkinsci-permissions-report-${env.BRANCH_NAME}", inversePrecedence: true)
     buildDiscarder logRotator(daysToKeepStr: '90')
   }
