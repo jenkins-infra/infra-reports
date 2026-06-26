@@ -91,6 +91,14 @@
       ]
     },
     "mirror.yandex.ru": {},
-    "mirrors.hostico.ro": {}
+    "mirrors.hostico.ro": {},
+    "jenkins.mirror.globo.tech": {
+      "outbound_ipv4": [
+        "74.120.223.18"
+      ],
+      "outbound_ipv6": [
+        "2001:19c0:1::2b03"
+      ]
+    }
   }
 }
