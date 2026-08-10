@@ -16,6 +16,14 @@
         "2001:6a8:3c80::27"
       ]
     },
+    "mirror.netone.nl": {
+      "outbound_ipv4": [
+        "195.95.177.10"
+      ],
+      "outbound_ipv6": [
+        "2001:67c:dec:195:95:177:10:a"
+      ]
+    },
     "ftp-chi.osuosl.org": {},
     "ftp-nyc.osuosl.org": {},
     "mirror.xmission.com": {},
