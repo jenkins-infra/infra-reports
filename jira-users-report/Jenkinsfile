@@ -16,12 +16,12 @@ pipeline {
   }
   stages {
     stage('Generate JIRA Users Report') {
-      when {
-        anyOf {
-          changeset 'jira-users-report/**/*'
-          expression { env.BRANCH_IS_PRIMARY }
-        }
-      }
+      // when {
+      //   anyOf {
+      //     changeset 'jira-users-report/**/*'
+      //     expression { env.BRANCH_IS_PRIMARY }
+      //   }
+      // }
       environment {
         JIRA_AUTH = credentials('jiraAuth')
         REPORT_NAME = "${reportName}"
