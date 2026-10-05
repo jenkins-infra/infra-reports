@@ -1,4 +1,4 @@
-def cronExpr = env.BRANCH_IS_PRIMARY ? 'H H/2 * * *' : ''
+def cronExpr = env.BRANCH_IS_PRIMARY ? 'H H/3 * * *' : ''
 def reportName = 'jira-users-report.json'
 
 pipeline {
@@ -6,8 +6,8 @@ pipeline {
     cron(cronExpr)
   }
   options {
-    // This pipeline takes ~1.5 hour to run
-    timeout(time: 2, unit: 'HOURS')
+    // This pipeline takes 1.5 to 2 hoursto run
+    timeout(time: 3, unit: 'HOURS')
     lock(resource: "jira-users-report-${env.BRANCH_NAME}", inversePrecedence: true)
     buildDiscarder logRotator(daysToKeepStr: '30')
   }
