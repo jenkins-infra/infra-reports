@@ -73,8 +73,14 @@ fi
 publick8sIpv4List="$(curl --silent --show-error --location 'https://reports.jenkins.io/jenkins-infra-data-reports/azure.json' \
     | jq '.["publick8s"].lb_outbound_ips.ipv4' \
 )"
+publick8sSponsoredIpv4List="$(curl --silent --show-error --location 'https://reports.jenkins.io/jenkins-infra-data-reports/azure.json' \
+    | jq '.["publick8s-sponsored"].lb_outbound_ips.ipv4' \
+)"
 publick8sIpv6List="$(curl --silent --show-error --location 'https://reports.jenkins.io/jenkins-infra-data-reports/azure.json' \
     | jq '.["publick8s"].lb_outbound_ips.ipv6' \
+)"
+publick8sSponsoredIpv6List="$(curl --silent --show-error --location 'https://reports.jenkins.io/jenkins-infra-data-reports/azure.json' \
+    | jq '.["publick8s-sponsored"].lb_outbound_ips.ipv6' \
 )"
 # infra.ci.jenkins.io (controller and agents) may emit outbound requests to external mirrors for testing or setup purposes
 infraciIpv4List="$(curl --silent --show-error --location 'https://reports.jenkins.io/jenkins-infra-data-reports/azure-net.json' \
@@ -83,8 +89,10 @@ infraciIpv4List="$(curl --silent --show-error --location 'https://reports.jenkin
 json="$(echo "${json}" | jq \
     --argjson publick8sIpv4List "${publick8sIpv4List}" \
     --argjson publick8sIpv6List "${publick8sIpv6List}" \
+    --argjson publick8sSponsoredIpv4List "${publick8sSponsoredIpv4List}" \
+    --argjson publick8sSponsoredIpv6List "${publick8sSponsoredIpv6List}" \
     --argjson infraciIpv4List "${infraciIpv4List}" \
-    '. += {"outbound_ipv4": ([$publick8sIpv4List + $infraciIpv4List] | flatten | unique), "outbound_ipv6": ([$publick8sIpv6List] | flatten | unique)}' \
+    '. += {"outbound_ipv4": ([$publick8sIpv4List + publick8sSponsoredIpv4List + $infraciIpv4List] | flatten | unique), "outbound_ipv6": ([$publick8sIpv6List + publick8sSponsoredIpv6List] | flatten | unique)}' \
 )"
 
 echo "${json}"
