@@ -92,7 +92,7 @@ json="$(echo "${json}" | jq \
     --argjson publick8sSponsoredIpv4List "${publick8sSponsoredIpv4List}" \
     --argjson publick8sSponsoredIpv6List "${publick8sSponsoredIpv6List}" \
     --argjson infraciIpv4List "${infraciIpv4List}" \
-    '. += {"outbound_ipv4": ([$publick8sIpv4List + publick8sSponsoredIpv4List + $infraciIpv4List] | flatten | unique), "outbound_ipv6": ([$publick8sIpv6List + publick8sSponsoredIpv6List] | flatten | unique)}' \
+    '. += {"outbound_ipv4": ([$publick8sIpv4List + $publick8sSponsoredIpv4List + $infraciIpv4List] | flatten | unique), "outbound_ipv6": ([$publick8sIpv6List + $publick8sSponsoredIpv6List] | flatten | unique)}' \
 )"
 
 echo "${json}"
